@@ -1,0 +1,145 @@
+{
+  "purpose": "Synthetic implementation scope probes; these records have no historical evidence and are not submissions",
+  "probes": [
+    {
+      "input": " Example.COM ",
+      "normalized": "example.com",
+      "regex_valid": true,
+      "eed_if_unique": "0.6321"
+    },
+    {
+      "input": "example.com",
+      "normalized": "example.com",
+      "regex_valid": true,
+      "eed_if_unique": "0.6321"
+    },
+    {
+      "input": "www.example.com",
+      "normalized": "www.example.com",
+      "regex_valid": true,
+      "eed_if_unique": "0.6321"
+    },
+    {
+      "input": "https://example.com",
+      "normalized": "https://example.com",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "example.com/path",
+      "normalized": "example.com/path",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "example.com:80",
+      "normalized": "example.com:80",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "example.com.",
+      "normalized": "example.com.",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "127.0.0.1",
+      "normalized": "127.0.0.1",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "bad_name.com",
+      "normalized": "bad_name.com",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "www.com",
+      "normalized": "www.com",
+      "regex_valid": true,
+      "eed_if_unique": "0.6321"
+    },
+    {
+      "input": "host.example.org.example.org",
+      "normalized": "host.example.org.example.org",
+      "regex_valid": true,
+      "eed_if_unique": "0.7101"
+    },
+    {
+      "input": "example.thisisnotatld",
+      "normalized": "example.thisisnotatld",
+      "regex_valid": true,
+      "eed_if_unique": "0"
+    },
+    {
+      "input": "xn--bcher-kva.de",
+      "normalized": "xn--bcher-kva.de",
+      "regex_valid": true,
+      "eed_if_unique": "0.1324"
+    },
+    {
+      "input": "example.xn--p1ai",
+      "normalized": "example.xn--p1ai",
+      "regex_valid": false,
+      "eed_if_unique": "0"
+    }
+  ],
+  "official_probe_summary": {
+    "method": "Each unique normalized valid hostname contributes the English primary-page-language share of its right-most TLD from the CC-MAIN-2024-10 model. Invalid and unmatched records contribute zero.",
+    "unique_nonempty_records": 13,
+    "unique_valid_domains": 6,
+    "invalid_records": 7,
+    "model_matched_records": 5,
+    "model_unmatched_valid_records": 1,
+    "model_coverage_percent_of_valid_records": "83.333333",
+    "equivalent_english_domains": "2.7388"
+  },
+  "equivalence_check": {
+    "sample": "first 100000 lines of merge261121-3/1996.txt",
+    "official_summary": {
+      "method": "Each unique normalized valid hostname contributes the English primary-page-language share of its right-most TLD from the CC-MAIN-2024-10 model. Invalid and unmatched records contribute zero.",
+      "unique_nonempty_records": 100000,
+      "unique_valid_domains": 100000,
+      "invalid_records": 0,
+      "model_matched_records": 99414,
+      "model_unmatched_valid_records": 586,
+      "model_coverage_percent_of_valid_records": "99.414000",
+      "equivalent_english_domains": "58856.9428"
+    },
+    "stream_eed": "58856.9428",
+    "all_assertions_passed": true
+  },
+  "model_summary": {
+    "unique_nonempty_tlds_in_raw_model": 1330,
+    "english_weights": 1306,
+    "tlds_without_eng_row": [
+      "16",
+      "54",
+      "anquan",
+      "clubmed",
+      "ipiranga",
+      "mma",
+      "shouji",
+      "voting",
+      "xihuan",
+      "xn--czrs0t",
+      "xn--fiqz9s",
+      "xn--kput3i",
+      "xn--l1acc",
+      "xn--lgbbat1ad8j",
+      "xn--mgbayh7gpa",
+      "xn--mgberp4a5d4ar",
+      "xn--node",
+      "xn--nyqy26a",
+      "xn--otu796d",
+      "xn--pgbs0dh",
+      "xn--rhqv96g",
+      "xn--vuq861b",
+      "xn--wgbl6a",
+      "yun"
+    ],
+    "zero_english_weights": []
+  }
+}

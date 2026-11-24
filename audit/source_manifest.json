@@ -1,0 +1,62 @@
+{
+  "audit_date": "2026-11-24",
+  "timezone": "UTC+8",
+  "scope": "Local task-package source fingerprints; source contents are not redistributed",
+  "files": [
+    {
+      "path": "Internet_Digital_Ark_Project_1020_Update.docx",
+      "bytes": 50538,
+      "sha256": "579f36ac222c435dfdc51230f085aa43f11135c92ddcf8a2311e7fca26884aa4"
+    },
+    {
+      "path": "Update_Log.docx",
+      "bytes": 42246,
+      "sha256": "e4188199b928ecdc4105c9b22a96c323237f69b3638e25c720f4d6888c76fc68"
+    },
+    {
+      "path": "Task_Package_File_Guide.txt",
+      "bytes": 1804,
+      "sha256": "3f83a1cd44e99add67170f9fa0f16814e0b0d34d519a9be88cd35cce267a03d8"
+    },
+    {
+      "path": "Contributor_Data_Source_and_Methods_Summary_20261003.md",
+      "bytes": 18992,
+      "sha256": "1ea749ff2fb2bdb4a25bc48874b8dc9c5022f4864345a2935aabe8bb825200ab"
+    },
+    {
+      "path": "equivalent_english_domain_calculator/README.md",
+      "bytes": 3018,
+      "sha256": "4fe8bb3306b6fcfa4d7549f7db6754a877317fbde8c5e9649c7dfc584e64f970"
+    },
+    {
+      "path": "equivalent_english_domain_calculator/equivalent_english_domains.py",
+      "bytes": 6281,
+      "sha256": "2488335c79977002cffecf394cf1845b80d2dd89ed48f3143e3555b883c9e411"
+    },
+    {
+      "path": "equivalent_english_domain_calculator/q2_tld_top_langs.json",
+      "bytes": 316087,
+      "sha256": "480d86bc287ef2c2bc80be62ecffe6eecba950dddf07bb9d3f15e6c2c268eb07"
+    },
+    {
+      "path": "equivalent_english_domain_calculator/example_1998_results/summary.json",
+      "bytes": 597,
+      "sha256": "19e5e3452d40509a6733976aa34d1807ef2d96668a2ee29bf2c39cde7f2e172c"
+    },
+    {
+      "path": "merge261121-3/isc_survey_hostnames/README.md",
+      "bytes": 1537,
+      "sha256": "36bba1fbf8fbc038b88bbd3bdc5b8f321fe93c6b095b19ff55e7f9d0889421d0"
+    },
+    {
+      "path": "merge261121-3/isc_survey_hostnames/LiChenyuan_README.txt",
+      "bytes": 351,
+      "sha256": "70d50b3ba822167cbbca28c08ae3ed9144072fa7a1aa72176f730335f554842b"
+    },
+    {
+      "path": "merge261121-3/isc_survey_hostnames/ISC_DNS_Hostname_IA_CDX_Validation_Experiment.md",
+      "bytes": 6661,
+      "sha256": "f60c9d2d2e15ee4f14bd1ca7f333b455f337b07cc1735f01057ec002ed7536c3"
+    }
+  ]
+}
