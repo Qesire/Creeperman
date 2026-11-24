@@ -4,26 +4,13 @@ from __future__ import annotations
 import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import timedelta
-from temporalio import activity, workflow
+from temporalio import activity
 from temporalio.client import Client
-from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
+from temporalio.common import WorkflowIDReusePolicy
 from temporalio.worker import Worker
 
 
-@workflow.defn
-class BatchWorkflow:
-    @workflow.run
-    async def run(self, envelope: dict) -> dict:
-        online=envelope["operation"]=="verify"
-        # External HTTP activities are not automatically repeated after an
-        # ambiguous failure. Offline activities may safely regenerate outputs.
-        return await workflow.execute_activity(
-            "execute_batch_v1", envelope,
-            start_to_close_timeout=timedelta(hours=1),
-            schedule_to_close_timeout=timedelta(hours=4),
-            heartbeat_timeout=timedelta(minutes=10),
-            retry_policy=RetryPolicy(maximum_attempts=1 if online else 3))
+from .workflow import BatchWorkflow
 
 
 class Activities:
@@ -48,7 +35,6 @@ async def serve(args):
     from pathlib import Path
     from .store import Store
     from .cdx import Collector
-    from .jobs import JOB_SCHEMA
     collector=None
     if args.role=="ia":
         if not args.allow_online or not args.user_agent:

@@ -43,6 +43,7 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
     if sha(path) != report["output_sha256"]["opportunities.jsonl"]:
         raise ValueError("census opportunity fingerprint mismatch")
     authority = report["authority"]["id"]
+    snapshot = sha(census_dir/"report.json")
     emitted, batch = 0, []
     def publish(rows):
         with tempfile.TemporaryDirectory() as t:
@@ -51,7 +52,7 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
                 for row in rows:
                     f.write(canonical(row))
             job={"schema":JOB_SCHEMA,"operation":"verify","version":VERSION,
-                 "policy":RULE,"provider":"ia-cdx","authority":authority,
+                 "policy":RULE,"provider":"ia-cdx","authority":authority,"census_snapshot":snapshot,
                  "input":store.put(p),"max_requests":len(rows)}
             return {"job_id":job_id(job),"operation":"verify","job_ref":store.put_json(job)}
     # Two passes avoid giving undated clues precedence over dated ones.
@@ -62,7 +63,7 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
             if bool(hinted) != dated or not mask:
                 continue
             h=host(row["hostname"])
-            if h != row["hostname"] or type(mask) is not int or mask & ~ALL:
+            if h != row["hostname"] or type(mask) is not int or mask & ~ALL or mask & (row["baseline_mask"] | row.get("local_qualified_mask",0)):
                 raise ValueError("invalid census identity/mask")
             original=None
             for s in row["sources"]:

@@ -55,20 +55,28 @@ def execute(store, envelope, role, collector=None, progress=lambda *args:None):
                 stop=False
                 for n,row,params in targets:
                     progress("target",n)
-                    if stop:
-                        meta,body={"state":"deferred_cooldown","requests":0},None
+                    previous=collector.start_target(envelope["job_id"],n)
+                    if previous and "hostname" in previous:
+                        result=previous
+                        stats["reused_checkpoint_records"]+=1
                     else:
-                        meta,body=collector.request(params)
-                    stats["requests"]+=meta["requests"]
-                    result=interpret(row,body,meta)
-                    result.update(record_line=n,query=params,provider="ia-cdx")
-                    if body is not None:
-                        raw=p/"response"
-                        raw.write_bytes(body)
-                        result["response_ref"]=store.put(raw)
+                        if previous:
+                            meta,body=previous,None
+                        elif stop:
+                            meta,body={"state":"deferred_cooldown","requests":0},None
+                        else:
+                            meta,body=collector.request(params)
+                        result=interpret(row,body,meta)
+                        result.update(record_line=n,query=params,provider="ia-cdx")
+                        if body is not None:
+                            raw=p/"response"
+                            raw.write_bytes(body)
+                            result["response_ref"]=store.put(raw)
+                        collector.finish_target(envelope["job_id"],n,result)
+                        stats["requests"]+=meta["requests"]
                     f.write(canonical(result))
                     stats[result["state"]]+=1
-                    if result["state"] in {"provider_cooldown","rate_limited"} or meta.get("http_status")==503:
+                    if result["state"] in {"provider_cooldown","rate_limited"} or result.get("http_status")==503:
                         stop=True
         progress("output_ready")
         output=store.put(out)

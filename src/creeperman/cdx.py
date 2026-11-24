@@ -44,6 +44,24 @@ class Collector:
         with sqlite3.connect(state) as db:
             db.execute("CREATE TABLE IF NOT EXISTS pace (id INTEGER PRIMARY KEY, next REAL NOT NULL)")
             db.execute("INSERT OR IGNORE INTO pace VALUES(1,0)")
+            db.execute("""CREATE TABLE IF NOT EXISTS checkpoint(
+              job_id TEXT, ordinal INTEGER, state TEXT NOT NULL, record TEXT,
+              PRIMARY KEY(job_id,ordinal)) WITHOUT ROWID""")
+
+    def start_target(self, job, ordinal):
+        with sqlite3.connect(self.state) as db:
+            cur=db.execute("INSERT OR IGNORE INTO checkpoint VALUES(?,?,'inflight',NULL)",(job,ordinal))
+            if cur.rowcount==1:
+                return None
+            state,record=db.execute("SELECT state,record FROM checkpoint WHERE job_id=? AND ordinal=?",(job,ordinal)).fetchone()
+            if state=="complete":
+                return json.loads(record)
+            return {"state":"ambiguous_previous_attempt","requests":0}
+
+    def finish_target(self, job, ordinal, record):
+        with sqlite3.connect(self.state) as db:
+            db.execute("UPDATE checkpoint SET state='complete',record=? WHERE job_id=? AND ordinal=?",
+                       (json.dumps(record,sort_keys=True),job,ordinal))
 
     def reserve(self):
         # Don't make a task sleep through extended cooldown.
@@ -82,7 +100,7 @@ class Collector:
         try:
             with self.opener.open(req,timeout=30) as r:
                 body=r.read(MAX_RESPONSE+1)
-                return {"state":"received","requests":1,"http_status":r.status,
+                return {"state":"received" if r.status==200 else "http_error","requests":1,"http_status":r.status,
                         "truncated":len(body)>MAX_RESPONSE},body[:MAX_RESPONSE]
         except HTTPError as e:
             with e:
@@ -130,6 +148,9 @@ def interpret(row, body, meta):
         return result
     try:
         data=json.loads(body)
+        if data==[]:
+            result["state"]="unresolved_no_match"
+            return result
         if not isinstance(data,list) or not data or not isinstance(data[0],list):
             raise ValueError("missing CDX header")
         header=data[0]
