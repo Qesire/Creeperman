@@ -4,7 +4,7 @@
 
 关于这些系统如何连接成完整流程，以及大规模已有覆盖如何改变搜索，先看[全过程与剩余发现](PROCESS_AND_RESIDUAL_DISCOVERY.md)。本文保留逐来源的资料依据、访问探针和适配细节。
 
-后续[研究复核后的方案](EVIDENCE_LED_REDESIGN.md)将 WebBase 2001 提升为独立来源重点，并核到具体归档读取和 Temporal 实现。本文件中的探针是此前已完成观察；本轮只读资料与源码，当前推进顺序先完成来源契约。
+最新用户信息说明 WebBase 2001 几乎读入、已使用的 IA 主体来源几乎读完；此前提升 WebBase 新增来源优先级的判断已撤下。当前入口为[档案起源与剩余发现](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)；新列归档项目的代码能力见[组件审计](OPEN_SOURCE_COMPONENT_AUDIT.md)。本文件保留已有来源说明和历史探针，不因渠道不同便认定有新供给。
 
 ## 调查带来的设计结论
 
@@ -158,7 +158,7 @@ W3C 目录适合验证历史正文边界：页面有后加导航及多种协议/
 - DOI：[10.13020/D62684](https://doi.org/10.13020/D62684)
 - [数据 handle](https://hdl.handle.net/11299/200445)
 
-官方元数据确认覆盖 1996—2000，包含 source、destination、frequency。目前只确认目录级身份；先补 README、文件清单、节点规范化和原始采集关系。尚不列为已可接入的独立原始网页库；WebBase 有更具体的图、映射和转换代码，应优先完成其来源链。
+官方元数据确认覆盖 1996—2000，包含 source、destination、frequency。目前只确认目录级身份；先补 README、文件清单、节点规范化和原始采集关系。尚不列为已可接入的独立原始网页库，也不据此假定其独立于已读 WebBase/IA 材料。
 
 ### IA / ODU / Filecoin 的纵向取样实践
 
@@ -183,13 +183,15 @@ W3C 目录适合验证历史正文边界：页面有后加导航及多种协议/
 
 可直接复用的部分集中在确定性数据处理。旧 5%/ZIP 规则更换为当前 1%/7z；解析层宽泛状态只作为初始观测，再经新证据策略。全局唯一键和多 witness 保留同时用于来源统计与最终导出，避免前端产率虚高。
 
-## M10. Stanford WebBase / LAW：独立的 2001 年图路线
+## M10. Stanford WebBase / LAW：已近乎读入的独立图来源
 
 - [LAW webbase-2001](https://law.di.unimi.it/webdata/webbase-2001/)：2001 年 Stanford WebBase 抓取衍生图；118,142,155 URL 节点，提供图与 URL 映射。
 - [WebGraph 教程](https://law.di.unimi.it/tutorial.php)：URL 第 i 行与节点 i 对应；图和 URL 文件必须采用匹配版本；可用成熟 API 顺序访问邻接关系。
 - 作者仓库固定 `2ffd9d9a7144c7024974e92379a05978fb97a8b5` 的 [WebBase 转换工具](https://github.com/vigna/webgraph/tree/2ffd9d9a7144c7024974e92379a05978fb97a8b5/src/it/unimi/dsi/webgraph/webbase)：URL2 未删除 www/子域；Hasher 以规范化 URL 哈希归并、保留首次输入标签；Converter 由源记录后继链接生成出度。
 
 这条路线具有独立抓取祖源和具体交付物。正出度源节点可在版本、身份与 dated graph 规则成立时形成图证据；零出度节点保留候选。仍须补历史生产版本绑定和上游 hostname 处理，不能将现存代码直接当成 2001 文件的完整生成证明，也不能把节点数当新增 host-year。详情见[复核文档第 3.1 节](EVIDENCE_LED_REDESIGN.md)。
+
+用户已说明主体几乎读入，上述机制保留作证据审计与有明确依据的缺口恢复。没有已处理范围清单支持时，不重新把该图列为未开发主力。
 
 ## M11. 复用能力必须核到实际代码
 

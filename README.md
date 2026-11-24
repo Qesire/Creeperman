@@ -8,7 +8,9 @@
 
 | 文档 | 内容 |
 |---|---|
-| [研究复核后的方案](docs/EVIDENCE_LED_REDESIGN.md) | 当前入口：具体来源、生成代码、可信发现、高效验证与 Temporal 全球批次通信 |
+| [档案起源与剩余发现](docs/ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md) | 当前入口：IA/WebBase 近乎读完后的来源判断、最初采集机制、可调查材料与容量缺口 |
+| [归档项目源码审计](docs/OPEN_SOURCE_COMPONENT_AUDIT.md) | MemGator、MementoMap、ArchiveTeam、urx 等固定版本的实际机制与复用边界 |
+| [研究复核后的方案](docs/EVIDENCE_LED_REDESIGN.md) | 来源生成代码、高效验证与 Temporal 全球批次通信；来源优先级已按最新覆盖情况修订 |
 | [门槛估算与全球分布执行](docs/CAPACITY_AND_GLOBAL_EXECUTION.md) | 容量情景、请求/计算预算、成熟执行组件、数据放置与来源预算 |
 | [全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md) | 对象、状态、完整流程、成熟方法和大基线下的发现策略 |
 | [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、组件边界与研究先行的推进依据 |
@@ -21,6 +23,7 @@
 
 ## 关键判断
 
+- 用户已说明 WebBase 2001 几乎读入、已使用的 IA 主体来源也几乎读完；不再把它们或同祖源镜像视为未开发主力。只有明确的未处理范围、新投影或证据补全依据才能重开任务。当前尚未证明有足够剩余材料跨过 1% 门槛。
 - 来源先核到原始采集、日期、身份、生成代码和交付范围。提供者不同、信息投影不同与基线外新增分别判断；资料仍无法回答的问题才进入判别性执行。
 - 已计入的 hostname-year 与已展开的资料分别记录：已知历史页面仍可能产生新外链、新检索入口或其他年份的证据。直接计分按基线求差，资料展开按来源版本和操作进度去重。
 - 核心统计单位是 **hostname-year**。同年去重，跨年分别举证；裸域和 `www.` 形式分别处理。
@@ -38,10 +41,12 @@
 
 ## 方案进展
 
-2026-11-24 新增来源与方案设计：以批量历史索引的基线外证据供给为主线，定向补证为辅线；复用旧 Creeper 和成熟归档组件。首轮验证重点是来源剩余容量、exact hostname-year 身份与年份语义、全局去重后的边际 EED。实际探针范围与未完成事项见[来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md)。
+2026-11-24 初版来源与方案设计采用批量历史索引、定向补证及旧 Creeper 组件；当时的来源探针范围见[来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md)。下述最新覆盖信息已改变这条路线的优先级，旧探针不代表当前新增结果。
 
 同日完成全过程重构：用来源/资料待办和候选/缺年验证待办组织两个循环，统一证据、全局差集和收益反馈。补充 Heritrix、IIPC 路由实践、MementoMap、RSM 等机制；明确已计入记录不能被无条件从资料展开路径中删除。新的流程定义见[全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md)。
 
 进一步完成[门槛估算与全球执行设计](docs/CAPACITY_AND_GLOBAL_EXECUTION.md)和[离线估算器](audit/estimate_capacity.py)。其中产率与吞吐为情景参数，旧小型控制进程的标价组合不是当前 Temporal 部署预算；未测得真实来源新增率或全球吞吐。
 
-同日根据研究复核修订当前方案：新增 WebBase 2001 独立图路线及 URL2/Hasher/Converter 源码依据；区分 UKWA/Arquivo 的共同 IA 祖源与不同投影；核实 pywb、warcio、ArchiveSpark 的验证机制。全球编排首选 Temporal＋各地批次 worker＋manifest 引用，来源请求在主采集区统一管理。撤下原定 72 次探测和初版自建租约层；纠正 RSM 所链接关键词模块仍为 TODO 的实现状态。本轮仅阅读资料、源码并修改文档，没有新增测试、扫描或部署。
+同日研究复核补充 WebBase URL2/Hasher/Converter、pywb、warcio 与 ArchiveSpark 的源码依据，区分 UKWA/Arquivo 的共同 IA 祖源。全球编排首选 Temporal＋各地批次 worker＋manifest 引用；撤下原定 72 次探测和自建租约层，并纠正 RSM 关键词模块的实现状态。
+
+最新修订接受用户提供的 IA/WebBase 近乎读完前提，追溯 Alexa、WebBase、Kulturarw3 与 PANDORA 的原始生产链。研究重点转向具体历史观察库存、选择/拒绝记录、独立原件与已确认的未消费信息；同时审查用户列出的归档项目，明确默认来源、年份、身份、缓存和任务预算边界。本轮仅阅读资料、源码并修改文档，没有新增测试、扫描或部署。
