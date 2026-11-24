@@ -8,6 +8,7 @@
 
 | 文档 | 内容 |
 |---|---|
+| [全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md) | 对象、状态、完整流程、成熟方法和大基线下的发现策略 |
 | [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、最小实现、首轮实验与推进依据 |
 | [成熟方案与来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md) | 批量索引、早期恢复、业界实践、实际访问与代码复用 |
 | [项目关键总结](docs/PROJECT_SUMMARY.md) | 任务目标、最新规则、计分、已有资源、主要风险与工作优先级 |
@@ -18,6 +19,7 @@
 
 ## 关键判断
 
+- 已计入的 hostname-year 与已展开的资料分别记录：已知历史页面仍可能产生新外链、新检索入口或其他年份的证据。直接计分按基线求差，资料展开按来源版本和操作进度去重。
 - 核心统计单位是 **hostname-year**。同年去重，跨年分别举证；裸域和 `www.` 形式分别处理。
 - 年度主表要求目标年份、确切 hostname 的网站证据；DNS、注册、邮件或文本线索须保存在候选层。
 - 使用固定 `CC-MAIN-2024-10` TLD 英语占比计算 Equivalent-English Domains（EED）。这是加权代理指标，不是逐站语言识别。
@@ -34,3 +36,5 @@
 ## 方案进展
 
 2026-11-24 新增来源与方案设计：以批量历史索引的基线外证据供给为主线，定向补证为辅线；复用旧 Creeper 和成熟归档组件。首轮验证重点是来源剩余容量、exact hostname-year 身份与年份语义、全局去重后的边际 EED。实际探针范围与未完成事项见[来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md)。
+
+同日完成全过程重构：用来源/资料待办和候选/缺年验证待办组织两个循环，统一证据、全局差集和收益反馈。补充 Heritrix、IIPC 路由实践、MementoMap、RSM 等机制；明确已计入记录不能被无条件从资料展开路径中删除。新的流程定义见[全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md)。
