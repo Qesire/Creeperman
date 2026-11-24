@@ -4,6 +4,8 @@
 
 当前来源前提是 WebBase 2001 和已使用的 IA 主体来源近乎处理完。以下组件主要降低访问、解析和调度成本；来源供给问题另见[档案起源与剩余发现](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)。
 
+最新[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)将这些复用边界落实到对象、查询计划、证据与请求预算。本文 §§8—10 补充本轮新列工具及 CDX 服务端的固定源码审计；只读源码，没有运行工具。
+
 ## 1. 先按输入输出选组件
 
 | 任务 | 有依据的复用对象 | Creeperman 保留的责任 |
@@ -14,6 +16,9 @@
 | 从历史资料提取关系 | AUT、维护中的 warc-indexer；urx 的部分适配器 | 保留站外链接与原始身份，明确过滤范围，保留记录定位 |
 | 保存与查询海量捕获索引 | OutbackCDX | 年度基线、证据账本、全局精确去重与 EED |
 | 对大量任务分片执行 | 复用现有 Temporal 设计；借鉴 ArchiveTeam 生产流程 | 来源任务定义、就近数据、幂等结果与全局预算 |
+| 消费有限 CDX 查询 | GLAM-Workbench、CreepsoOff 下载器的部分客户端机制 | exact host、缺年位图、查询范围完整性、实际 capture 与替代 witness |
+| 历史文本与索引 inventory | Usenet 消费者格式适配、cdx-summarize 的时间统计 | 消息/正文版本、original 身份、原始定位及全局差集 |
+| 注册信息辅助 | domaincheck / domain-check 的 RDAP 解析和路由 | 保存事件类型、缺失与错误；不作历史网站资格或年代硬排除 |
 | 内容辅助分组和复核 | OTMT、wayback-discover-diff 的特征计算 | 不将主题连续性、正文相似性当成年度网站资格 |
 
 ## 2. 多档案聚合与路由
@@ -177,7 +182,86 @@ host 图生产脚本还调用 `cc-pyspark` 的代码，本次没有据此声称�
 
 可抽取纯特征计算与内容缓存机制。该服务不是已经实现的跨域停放页分类器；相同正文不等于相同 hostname-year。Under Construction、默认页、软错误等资格应由竞赛证据规则分别处理，不能把内容相似或主题变化当作统一自动否决条件。
 
-## 8. 实施边界
+## 8. CDX 选择、分页与回放客户端
+
+### 8.1 Wayback CDX 服务端：折叠和完成语义要读到循环
+
+固定提交：`internetarchive/wayback@a331f968c2a8b3ef56b82dc3a9faed11900e84b2`。
+
+- [README](https://github.com/internetarchive/wayback/blob/a331f968c2a8b3ef56b82dc3a9faed11900e84b2/wayback-cdx-server/README.md) 和 [CollapseFieldFilter.java](https://github.com/internetarchive/wayback/blob/a331f968c2a8b3ef56b82dc3a9faed11900e84b2/wayback-cdx-server/src/main/java/org/archive/cdxserver/filter/CollapseFieldFilter.java)：collapse 比较相邻值，不按 hostname 重置。多个 collapse 是顺序过滤，不是复合键分组。年度位图必须自行按 original 的 exact host 构造。
+- [CDXServer.java](https://github.com/internetarchive/wayback/blob/a331f968c2a8b3ef56b82dc3a9faed11900e84b2/wayback-cdx-server/src/main/java/org/archive/cdxserver/CDXServer.java) 的 `writeCdxResponse`：原始行读取计数先推进，日期/权限/regex/collapse 后才增加输出数。original regex 可在 output limit 前执行，但不能只在客户端过滤第一行就宣称无匹配。
+- 非分页分支可能先触发配置的 `queryMaxLimit`；resumeKey 又以输出达到 writeLimit 为条件。故无 token 不构成通用的完整性证明。该源码不等于 2026 年生产后端配置，当前生产读上限未测量。
+- ZipNum pageSize 是压缩块单位。限定视图中的全部页消费完成、限量选择出一条 witness、在预算内未命中，是三个不同结果。continuation 的同 key/同秒边界也需按用途审查。
+
+已将静态反例、exact host 过滤、缺年 witness 和范围完成状态写入[流水线第 5 节](DISCOVERY_AND_VERIFICATION_PIPELINE.md#5-cdx-查询必须以证据目标为中心)。没有为确认文档已明确的语义安排实际查询测试。
+
+### 8.2 GLAM-Workbench/web-archives：分页落盘与元数据缓存
+
+固定提交：`e84fa145eb0a97efabfad69a8cd12e7d35ed6f4c`。
+
+| 文件 | 可复用机制 | 必要适配 |
+|---|---|---|
+| [harvesting_domain_data.ipynb](https://github.com/GLAM-Workbench/web-archives/blob/e84fa145eb0a97efabfad69a8cd12e7d35ed6f4c/harvesting_domain_data.ipynb) | showNumPages、pageSize、requests-cache、按页 NDJSON 及查询元数据 | 记录具体索引视图、每页完成与预算；示例 domain 范围不能默认用于基线子域发现 |
+| [find_all_captures.ipynb](https://github.com/GLAM-Workbench/web-archives/blob/e84fa145eb0a97efabfad69a8cd12e7d35ed6f4c/find_all_captures.ipynb) | IA/pywb 查询字段与过滤差异 | 保留 original，按规则解析 exact host-year；示例 collapse=urlkey 不提供年度完整性 |
+| [getting_text_from_web_pages.ipynb](https://github.com/GLAM-Workbench/web-archives/blob/e84fa145eb0a97efabfad69a8cd12e7d35ed6f4c/getting_text_from_web_pages.ipynb) | 获取回放文本、处理跳转、避免明显落到活站 | 还需校验实际 capture 年；SURT 分组不是竞赛身份 |
+
+这些 notebook 提供实际 API 消费模式，不是现成的 Creeperman 年度证据验收器。
+
+### 8.3 CreepsoOff/wayback-machine-website-downloader：镜像能力与证据能力不同
+
+固定提交：`75be75b6f696b73d55cad17f0a22f806f2f3b2bb`。下列文件均位于 [`src/wayback_machine_downloader/`](https://github.com/CreepsoOff/wayback-machine-website-downloader/tree/75be75b6f696b73d55cad17f0a22f806f2f3b2bb/src/wayback_machine_downloader)。
+
+| 代码 | 已确认机制 | Creeperman 需要改变的地方 |
+|---|---|---|
+| `cdx.py` | CDX-first、查询指纹、续取 token 持久化、重复 token 检查 | 当前收集所有行后返回；无 token 即完成仍受上游语义限制。改为分块输出并明确查询范围状态 |
+| `selection.py` | 按 original URL 选择 latest/nearest/before/after | 目标改为 exact host 缺年与同年替代 witness；不照搬单 URL 时间点镜像策略 |
+| `http.py` | 退避、数字 Retry-After、SHA-1 Base32 digest 检查，考虑 gzip 解码 | 并入 provider 总预算；校验失败需要业务状态和替代证据，不能只留日志 |
+| `mirror.py` 的 `download()` 与 `state.py` | 关闭自动重定向、保存状态/headers 与下载登记 | 不足以证明选中索引时间与实际回放捕获相同；当前 digest 校验失败仍可登记为已完成下载，后续报告错误，没有本题所需的替代 witness 闭环 |
+| `mirror.py` | 外链允许列表、深度与预算 | 历史正文链接作为独立线索；不自动回填目标年份 |
+| `warc.py` | 生成新的 resource WARC，使用选择出的 CDX timestamp | README 已说明不是 IA 原始 WARC；派生包装需绑定实际 capture，不变成新的历史观察 |
+
+可复用获取与检查点机制。仅有“使用 CDX、下载 id_、再写 WARC”不足以提供本题完整保管链。[README](https://github.com/CreepsoOff/wayback-machine-website-downloader/blob/75be75b6f696b73d55cad17f0a22f806f2f3b2bb/README.md)与代码的镜像用途应保留。
+
+## 9. 索引汇总与历史消息格式
+
+### 9.1 ymaurer/cdx-summarize：适合盘点，不保留全部 witness
+
+固定提交：`1ed55683921f55f2926d900be1b355130f956f47`。[README](https://github.com/ymaurer/cdx-summarize/blob/1ed55683921f55f2926d900be1b355130f956f47/README.md)、[CdxParser.py](https://github.com/ymaurer/cdx-summarize/blob/1ed55683921f55f2926d900be1b355130f956f47/CdxParser.py)、[cdx-summarize.py](https://github.com/ymaurer/cdx-summarize/blob/1ed55683921f55f2926d900be1b355130f956f47/cdx-summarize.py)。
+
+可按 host 与 year/month 汇总记录及压缩 WARC 字节。默认的 second-level domain 实际取 SURT 两级标签，并非完整 PSL；`--fullhost` 仍基于 canonical/massaged key，不能恢复已经丢掉的 www。CDXJ 缺 status 时未由通常的 2xx 检查拒绝。汇总结果丢失 original 和原始记录定位。
+
+借用其时间 inventory 思路；候选与合格证据由保留 original、年份和原件定位的解析结果构建。它不提供新的历史文本来源，也不是精确年度身份或证据完整性判定器。
+
+### 9.2 alphalinux/mailing-list-archives：Usenet 数据格式参考
+
+固定提交：`2c9b45193312840f20b219078630af617c3cf53b`。[来源记录](https://github.com/alphalinux/mailing-list-archives/blob/2c9b45193312840f20b219078630af617c3cf53b/SOURCES.md)、[fetch-usenet-archive-mbox.py](https://github.com/alphalinux/mailing-list-archives/blob/2c9b45193312840f20b219078630af617c3cf53b/fetch-usenet-archive-mbox.py)。
+
+代码明确使用 `usenet-<hierarchy>/<group>.mbox.zip`，处理 `From <deja-id>`、多种 Date 形式和无日期记录。可用于了解 Google/Deja 消息包的格式，但整包入内存、缺时区默认 UTC、作者自定日期下限不能无条件迁移。Creeperman 保留原始字节位置、Date、时区不确定性和 Message-ID 缺失状态。
+
+本轮在 IA 官方目录确认了示例 ZIP 名称列示，没有取 ZIP。作者报告处理范围与实际目标期容量分别记录，详见[流水线来源表](DISCOVERY_AND_VERIFICATION_PIPELINE.md)。
+
+## 10. RDAP 工具不是历史年代筛选的完整实现
+
+### 10.1 pepa65/domaincheck
+
+固定提交：`01e3b20e2809b9c00997ccc676552c33424baac9`。[src/main.rs](https://github.com/pepa65/domaincheck/blob/01e3b20e2809b9c00997ccc676552c33424baac9/src/main.rs)。实现是 **Rust + Tokio**，并非 Go。
+
+`extract_domain_info` 从顶层 registration 事件提取 creation_date；文件批量检查按 TLD 分组并用 semaphore 限制并发，JSON 可带 info。已读 CLI 没有历史年份阈值筛选参数。WHOIS fallback 返回可用性，不保证补全日期；缺失或错误不能当历史不存在。可以参考请求与解析，保留原始事件、来源与失败状态后才用于辅助排序。
+
+### 10.2 jedarden/domain-check
+
+固定提交：`1d48672cf586354a9888d3045066a211a71f3ea9`，Go 实现。
+
+| 文件 | 静态核查结果 |
+|---|---|
+| [internal/rdap/rdap.go](https://github.com/jedarden/domain-check/blob/1d48672cf586354a9888d3045066a211a71f3ea9/internal/rdap/rdap.go) | `extractDates` 提取 registration，无此值时把 reregistration 也填入 Created，扁平输出丢失事件区别 |
+| [internal/checker/checker.go](https://github.com/jedarden/domain-check/blob/1d48672cf586354a9888d3045066a211a71f3ea9/internal/checker/checker.go) | 内核结果可保留 Registration，支持 CheckBulk；需留意启用 DNS shortcut 的具体调用路径，不能说其默认跳过 RDAP |
+| [internal/cli/bulk.go](https://github.com/jedarden/domain-check/blob/1d48672cf586354a9888d3045066a211a71f3ea9/internal/cli/bulk.go) | 批量 CLI JSON/CSV 不导出 Registration/Created，仅有 domain、available、tld、source、duration、error |
+| [internal/ratelimit/ratelimit.go](https://github.com/jedarden/domain-check/blob/1d48672cf586354a9888d3045066a211a71f3ea9/internal/ratelimit/ratelimit.go) | Go rate limiter 与 weighted semaphore，属于进程内机制，不是全球共享预算服务 |
+
+最小语义适配是保留 domain 顶层原始事件、补齐批量导出字段与缺失/失败状态。即便这些完成，registration 也只是注册线索；当前创建日期不能作为历史网站资格或安全排除依据。协议与当前 zone 的输入偏差见[流水线第 3.3 节](DISCOVERY_AND_VERIFICATION_PIPELINE.md#33-现代-zone-与-rdap-放到辅助路径)。
+
+## 11. 实施边界
 
 本轮确定的自写部分是：**exact hostname 与年份、来源祖源、证据规则、可替代 witness、年度差集、资料处理范围及查询完成语义。**归档格式解析、压缩索引、分布式任务生命周期和通用内容特征已有代码可用。
 

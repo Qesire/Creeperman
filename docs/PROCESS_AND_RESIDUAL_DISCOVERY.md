@@ -148,6 +148,8 @@ novel_mask(h) = verified_mask(h) & ~baseline_mask(h) & 0b111111
 
 ## 4. 全过程：两条发现路径，一套证据和计分
 
+具体对象与接口已落实到[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)。离线资料处理和在线补证各自调度，但共享观测与证据库；已有合格证据直接结算，只有剩余缺口进入查询队列。RDAP、全文检索和首次资料获取各有网络预算，不归入“离线零请求成本”。
+
 ```mermaid
 flowchart TD
   S[来源与资料待办] --> O[获取并保留原始观测]
@@ -180,6 +182,8 @@ flowchart TD
 | 9. 审计与交付 | 用提交时适用基线重新求差，生成年度表、证据和复现材料 | 满足最低 1% 且材料完整时准备提交；验收后更新官方覆盖，保留旧版本 |
 
 来源调查与候选验证可并行，证据结算使用同一套键和规则。运行中的来源增益相对于 `K_t` 计算，避免多个来源都把同一新增记录报告成各自独占收益。提交归因另保留完整的多来源关系。
+
+查询完成单独判定：`qualified`、`witness_rejected`、`complete_for_declared_index_view`、`budget_exhausted`、`possibly_truncated`、`transient_failure` 不互相替代。CDX 的空结果、无 resumeKey 或 Activity 正常返回均不足以单独证明范围已消费完整。相邻 `collapse=timestamp:4` 也不是按 hostname-year 分组。固定源码依据与静态反例见[流水线第 5 节](DISCOVERY_AND_VERIFICATION_PIPELINE.md#5-cdx-查询必须以证据目标为中心)。
 
 ## 5. 大基线会怎样改变策略
 
@@ -293,7 +297,7 @@ V_(t+j) = Γ_r(O_t ∪ O_j) ∩ (H × Y)
 
 复用现有基线审计与年度位图设计。IA/WebBase 主体近乎处理完来自用户说明，已纳入计划；仍需将具体版本、年份、操作与规范化补入处理谱系。未重新完成全量差集，也不将未知投影默认当作未处理。
 
-来源研究优先取得实际历史观察库存：PANDORA 目标年业务档案系列与字段、Kulturarw3 目标年生产/保存清单、独立交存或离线材料的原件及映射。WebBase/IA 派生渠道只有明确遗漏分片、信息投影或证据补全依据时才重开。原始文献与限制见[档案起源与剩余发现](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)。
+来源研究优先整理已具体定位的历史文本库存：Usenet 分组 mbox、W3C 同期 HTML 邮件及 arXiv 明确正文版本；同时推进 PANDORA 目标年业务档案系列与字段、Kulturarw3 生产/保存清单、独立交存原件及映射。文件列示、目标记录可读、批量交付和基线外容量分层记录。WebBase/IA 派生渠道只有明确遗漏分片、信息投影或证据补全依据时才重开。原始文献与限制见[档案起源](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)及[流水线来源契约](DISCOVERY_AND_VERIFICATION_PIPELINE.md)。
 
 ### 7.2 固定发现与验证操作
 

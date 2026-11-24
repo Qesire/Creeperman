@@ -73,6 +73,8 @@ p      = 100 × ΔEED / EED(B)        # EED(B)>0
 
 最小证据记录建议包含：`hostname_raw`、`hostname_normalized`、`year`、`evidence_type`、`observed_at`、`date_semantics`、`original_url`、`recovery_url`、`source_id`、`source_version`、`source_file`、`source_hash`、`record_locator`、`capture_status`、`normalization_version`、`validation_status`、`reason`、`extraction_code_version`。访问条件和查询模板可以关联到来源表，避免重复。
 
+具体接口见[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)：资料分片、原始观测、候选、缺年目标、证据包与操作记录各有身份。查询无结果只有在声明的索引范围完整消费后才进入 `no_match_in_scope`；预算耗尽、可能截断、单条 witness 拒绝和网络失败分别保留。回放请求年份不代替实际捕获年份；文本事件时间、正文版本时间和转存时间也分别记录。
+
 活动候选池按任务书要求排除已经出现在任一年度主表中的 hostname：令 `J` 为当前全部已纳入的核心与扩展年份，`C_active = C_valid \ union_{y∈J} M_y`。这不应删除其来源历史，也不应丢掉其他年份的未验证任务。为此另建以 `(hostname, year)` 为键的验证队列：h 已在 1997 年入选时，可从活动 hostname 候选导出中移除，但 1998 年仍保持未验证；不得自动入选 1998 年。[集合规则来自 S1 §XII；队列设计为建议]
 
 ## 连续发现流程

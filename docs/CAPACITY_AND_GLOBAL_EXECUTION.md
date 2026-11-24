@@ -6,6 +6,8 @@
 
 **最新来源前提：用户已说明 WebBase 2001 几乎读入，已使用的 IA 主体来源几乎读完。**这些来源不再作为未开发容量进入预算；原来 q 的情景值没有因此变成可用剩余率。当前首要缺口是门槛级历史观察供给，研究依据与下一份具体清单见[档案起源与剩余发现](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)，组件的实际代码边界见[源码审计](OPEN_SOURCE_COMPONENT_AUDIT.md)。
 
+最新接口以[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)为准：离线资料、在线发现和在线补证分别计成本，已充分的证据直接结算；在线任务使用有界窗口、exact host 缺年选择和明确的查询完成语义。本文补入端点配额资料及准入条件，没有把公开限额当实测吞吐。
+
 ## 1. 先把四种门槛分开
 
 | 门槛 | 必须回答的问题 | 增加全球节点的作用 |
@@ -83,6 +85,12 @@ T_days ≈ G_remaining / (86400 × R_eff × g)
 例如，假设被查询 host 中 15% 产生贡献，有贡献者平均新增 2.5 年，均权 0.6，每个尝试 host 平均需要 2 次请求，则 `g = 0.15 × 2.5 × 0.6 / 2 = 0.1125`。这对应约 340 万个尝试 host、679 万次请求，4 req/s 下约 19.66 天。四个比例必须来自相容的工作负载；这个例子仍是情景计算。
 
 给定期限也能倒推最低产能：达到 1% 的 7、14、30 天期限分别要求约 **1.264、0.632、0.295 EED/s**。若持续只有 4 req/s，14 天目标要求平均约 **0.158 EED/request**，30 天目标要求约 **0.074 EED/request**。如果实测相差一个数量级，首先应改变来源或请求策略。
+
+### 2.4 发现速率与在线补证的准入
+
+候选落持久分片，不要求每个名字立即创建工作流。设唯一补证计划的准入速率为 λ；计划绑定 exact host、待补年份集合与来源策略。每个计划对端点组 e 的平均实际请求成本为 c_e，可用预算为 R_e，逐组采用带余量的约束 `λ × c_e < R_e`；多类计划为 `Σ_j λ_j c_je < R_e`。c_e 包含分页、失败、重试、替代 witness、正文与 revisit。多个年份共用扫描时实际请求只计一次，共同后端共用约束。
+
+这是稳定工作负载下的平均容量规划条件，不足以单独保证队列或延迟；还要限制并发槽、瞬时窗口和重试总量。平均请求占槽时间为 s_e、允许并发为 K_e 时，还需检查 `λ c_e s_e ≤ K_e` 并留余量。积压时保留持久候选、收紧低价值在线准入；直接已有证据的路径不强制再请求档案馆。CPU/字节/人工另计，不把候选每秒与请求每秒直接比较。当前没有实测 c_e 或 λ。[C20]
 
 ## 3. 已知文件规模说明了什么
 
@@ -186,6 +194,14 @@ R_s,plan ≲ min(R_s, Σ_r A_rs × u_r × c_rs / ℓ_rs)
 
 这组数字只展示饱和机制，假设在线时间能充分错开、来源预算得到持续利用。一般 `E[min(offered(t), budget)] ≤ min(E[offered(t)], budget)`；如果 6 或 12 个节点都在同一段 80% 时间在线，全天吞吐仅为 3.2 req/s，对应约 27.64 天，而非 22.12 天。计算器同时给出这两类情景。第十二个节点可以改善可用性或接入别的来源，但不会凭空增加上述同一服务的预算。新增地区的收益应分别记为新增可达来源、持续成功吞吐、数据搬运节省与成本变化。
 
+### 5.3 端点限额不是节点数的函数
+
+2026-11-24 核查的 Arquivo 官方 API Wiki（标记 2026-06-15 编辑）分别列出：全文/URL 检索 250、CDX 250、Memento 400、单列回放等端点 4000 请求/60 秒/IP。共同 `/wayback` 路径前缀不能作为共享上限的判据；文档也没有保证这些分类额度可相加。[C20]
+
+Wayback 客户端维护者 issue #205 转述与 IA 人员沟通：CDX 与 TimeMap 已共用查询服务和 30/min 限流池；v0.5.1 在 2026-06-19 将客户端默认设为 24/min。该来源没有确立本项目可按 N 个 IP/地区取得 `24N` 请求/分钟，也不提供持续吞吐承诺。进程内默认 limiter 不会自动跨进程共享。[C20]
+
+为每个 endpoint 保存适用计数作用域、提供者共同约束、出处及核查时间。单一地区内的所有采集调用仍需经共享 limiter；范围读取、revisit 和重试不绕过同一请求预算。来源未完成、预算用尽与完整空结果分别统计，避免用超时/截断低估候选价值。
+
 ## 6. 首版架构：复用 Temporal，全球执行批次活动
 
 本轮依据进一步的官方文档与源码复核，采用 Temporal 作为任务生命周期的首选实现。来源、发现和验证的完整依据见[研究复核后的方案](EVIDENCE_LED_REDESIGN.md)。此前 PostgreSQL＋自建 HTTPS 领取、租约、epoch、reaper 和请求许可协议从首版移除；PostgreSQL 如保留，只承担结果目录等数据职责。[C16]
@@ -282,7 +298,7 @@ NATS JetStream 的持久 pull consumer、批量领取和确认可解决消息投
 原“3 地 × 4 来源 × 2 操作 × 3 时段”的 72 次探测，以及针对自建租约的故障试验，从当前计划撤下。测试数量应由未解决问题决定。当前优先完成：
 
 1. 把用户已提供的 IA/WebBase 主体近乎完成状态落到来源、版本、范围和操作账本；不假定尚有正文或图目标未处理。
-2. 取得 PANDORA 目标年业务记录的实际目录与字段，Kulturarw3 等独立采集的生产/保存清单及交付说明。
+2. 整理 Usenet 具体分组、W3C 目标月、arXiv 明确正文版本的来源契约；同时取得 PANDORA 业务目录与字段、Kulturarw3 独立采集的生产/保存清单及交付说明。
 3. 仅在确有不同记录、原始身份或未消费投影时，继续 UKWA/Arquivo 等同祖源渠道；当前没有门槛级剩余容量证明。
 4. 将有材料支持的操作绑定 pywb/warcio、精确年度差集、档案路由与 Temporal 批次接口；修正源码审计发现的默认来源、身份和时间压缩。
 
@@ -332,3 +348,4 @@ NATS JetStream 的持久 pull consumer、批量领取和确认可解决消息投
 - **[C17] Temporal 数据与限制。** [Worker best practices](https://docs.temporal.io/best-practices/worker)、[External Storage](https://docs.temporal.io/external-storage)、[System limits](https://docs.temporal.io/evaluate/cloud/limits)。采用显式 Claim Check，限制按具体部署形态解释。
 - **[C18] Temporal Activity 速率。** Python SDK `9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c` 的 [Worker 参数](https://github.com/temporalio/sdk-python/blob/9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c/temporalio/worker/_worker.py)与 [Activity worker](https://github.com/temporalio/sdk-python/blob/9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c/temporalio/worker/_activity.py)。
 - **[C19] Prefect 替代方案。** 固定 `97915452decd5b53b038cdf0e429109343370f9d` 的 [RetryFailedFlows](https://github.com/PrefectHQ/prefect/blob/97915452decd5b53b038cdf0e429109343370f9d/src/prefect/server/orchestration/core_policy.py)及[失联 flow 文档](https://github.com/PrefectHQ/prefect/blob/97915452decd5b53b038cdf0e429109343370f9d/docs/v3/advanced/detect-zombie-flows.mdx)。
+- **[C20] 本轮流水线与请求依据。** [发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md) §§5—9；[Arquivo APIs](https://github.com/arquivo/pwa-technologies/wiki/APIs)、[Wayback issue #205](https://github.com/edgi-govdata-archiving/wayback/issues/205)、[v0.5.1 发布说明](https://wayback.readthedocs.io/en/latest/release-history.html)。队列准入式为本项目规划推导，参数尚未测量。

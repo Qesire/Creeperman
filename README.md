@@ -8,7 +8,8 @@
 
 | 文档 | 内容 |
 |---|---|
-| [档案起源与剩余发现](docs/ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md) | 当前入口：IA/WebBase 近乎读完后的来源判断、最初采集机制、可调查材料与容量缺口 |
+| [发现与取证流水线](docs/DISCOVERY_AND_VERIFICATION_PIPELINE.md) | 当前入口：六类对象、历史文本来源、CDX 查询完整性、实际捕获年份、端点预算与全球执行契约 |
+| [档案起源与剩余发现](docs/ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md) | IA/WebBase 近乎读完后的来源判断、最初采集机制、可调查材料与容量缺口 |
 | [归档项目源码审计](docs/OPEN_SOURCE_COMPONENT_AUDIT.md) | MemGator、MementoMap、ArchiveTeam、urx 等固定版本的实际机制与复用边界 |
 | [研究复核后的方案](docs/EVIDENCE_LED_REDESIGN.md) | 来源生成代码、高效验证与 Temporal 全球批次通信；来源优先级已按最新覆盖情况修订 |
 | [门槛估算与全球分布执行](docs/CAPACITY_AND_GLOBAL_EXECUTION.md) | 容量情景、请求/计算预算、成熟执行组件、数据放置与来源预算 |
@@ -25,6 +26,8 @@
 
 - 用户已说明 WebBase 2001 几乎读入、已使用的 IA 主体来源也几乎读完；不再把它们或同祖源镜像视为未开发主力。只有明确的未处理范围、新投影或证据补全依据才能重开任务。当前尚未证明有足够剩余材料跨过 1% 门槛。
 - 来源先核到原始采集、日期、身份、生成代码和交付范围。提供者不同、信息投影不同与基线外新增分别判断；资料仍无法回答的问题才进入判别性执行。
+- 资料发现和在线补证分开调度。已取得的合格证据直接进入年度差集；在线补证只处理剩余缺口，全文发现和注册线索分别使用预算。Usenet、同期邮件和明确版本的论文已具体到材料入口，但残余容量尚未测得；RDAP 是辅助在线线索，不是网站证据或可靠的历史硬排除器。
+- exact hostname 从 original URL 解析；SURT 只作检索键。CDX 相邻年份折叠不是 hostname-year 分组；空结果或无续取 token 不自动证明检索完整。实际捕获年、请求年、原件时间与转存时间分别保存。
 - 已计入的 hostname-year 与已展开的资料分别记录：已知历史页面仍可能产生新外链、新检索入口或其他年份的证据。直接计分按基线求差，资料展开按来源版本和操作进度去重。
 - 核心统计单位是 **hostname-year**。同年去重，跨年分别举证；裸域和 `www.` 形式分别处理。
 - 年度主表要求目标年份、确切 hostname 的网站证据；DNS、注册、邮件或文本线索须保存在候选层。
@@ -50,3 +53,5 @@
 同日研究复核补充 WebBase URL2/Hasher/Converter、pywb、warcio 与 ArchiveSpark 的源码依据，区分 UKWA/Arquivo 的共同 IA 祖源。全球编排首选 Temporal＋各地批次 worker＋manifest 引用；撤下原定 72 次探测和自建租约层，并纠正 RSM 关键词模块的实现状态。
 
 最新修订接受用户提供的 IA/WebBase 近乎读完前提，追溯 Alexa、WebBase、Kulturarw3 与 PANDORA 的原始生产链。研究重点转向具体历史观察库存、选择/拒绝记录、独立原件与已确认的未消费信息；同时审查用户列出的归档项目，明确默认来源、年份、身份、缓存和任务预算边界。本轮仅阅读资料、源码并修改文档，没有新增测试、扫描或部署。
+
+进一步将候选发现与证据补全落实为[流水线契约](docs/DISCOVERY_AND_VERIFICATION_PIPELINE.md)：绑定 Usenet/W3C/arXiv 材料，区分候选库、缺年目标与合格证据；核查 CDX 折叠、扫描上限和分页完成语义，明确回放实际年份及替代 witness。全球任务仍用 Temporal，预算按真实提供者和端点统一管理，不采用“24 请求/分钟 × VPS 数”的容量推断。本轮仍只有资料和源码核查、文档修订，没有新增数据执行或提交结果。
