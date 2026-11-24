@@ -39,7 +39,8 @@ def online_jobs(store,rows,provider,action,authority,round_id,limit,batch_size):
 
 def route(h):
     if h.endswith(".pt"):return ["arquivo","ia"]
-    # .au and .cz are meaningful manual leads, not fabricated API adapters.
+    # Explicit soft priors, not measured recall. .au/.cz remain manual leads.
+    if h.endswith((".uk",".fr",".de",".es",".it",".nl",".ch",".edu")):return ["ia","arquivo"]
     return ["ia"]
 
 def routed_jobs(store,census_dir,limit,batch_size,round_id,offset=0,include_undated=False):
@@ -99,9 +100,14 @@ def followup_rows(db_path,authority,mode,provider,limit):
                    WHERE a.authority=w.authority AND a.provider=?
                    AND a.action='replay' AND a.hostname=w.hostname
                    AND a.timestamp=w.timestamp AND a.original=w.original)
+                AND NOT EXISTS(SELECT 1 FROM online_attempts a
+                   WHERE a.authority=w.authority AND a.provider=?
+                   AND a.action='replay' AND a.hostname=w.hostname
+                   AND substr(a.timestamp,1,4)=CAST(w.year AS TEXT)
+                   AND a.state='replay_review')
                 ORDER BY w.hostname,w.year,w.timestamp,w.original"""
             seen=set()
-            for h,ts,u,d,prov in db.execute(query,(authority,provider,provider+"-cdx",provider)):
+            for h,ts,u,d,prov in db.execute(query,(authority,provider,provider+"-cdx",provider,provider)):
                 key=(h,timestamp_year(ts))
                 if key in seen:continue
                 seen.add(key)
@@ -119,6 +125,25 @@ def followup_rows(db_path,authority,mode,provider,limit):
                 files=[x[0] for x in db.execute("""SELECT DISTINCT json_extract(r.record,'$.source_pointer.file') FROM results r JOIN manifests m ON m.hash=r.manifest_hash
                     WHERE m.authority=? AND json_extract(r.record,'$.source_pointer.item')=? LIMIT 500""",(authority,item)) if x[0]]
                 seen.add(item);yield {"item":item,"files":files}
+                if len(seen)>=limit:return
+        elif mode=="expand-host":
+            seen=set()
+            for (raw,) in db.execute("""SELECT r.record FROM results r JOIN manifests m ON m.hash=r.manifest_hash
+                WHERE m.authority=? AND m.operation='online' AND json_extract(r.record,'$.action')='lookup'
+                AND json_extract(r.record,'$.provider')=? ORDER BY r.manifest_hash,r.ordinal""",(authority,provider)):
+                r=json.loads(raw);h=r["hostname"];inp=r["request_input"]
+                if not inp.get("original_url") or inp.get("same_host") or h in seen:continue
+                if r["state"] not in ("potential_witness","unresolved_no_match"):continue
+                missing=r["target_mask"]&~r["witness_mask"]
+                if not missing:continue
+                if db.execute("""SELECT 1 FROM online_attempts a JOIN results rr
+                    ON rr.manifest_hash=a.manifest_hash AND rr.ordinal=a.ordinal
+                    WHERE a.authority=? AND a.provider=? AND a.action='lookup' AND a.hostname=?
+                    AND (json_extract(rr.record,'$.request_input.same_host')=1
+                         OR json_extract(rr.record,'$.request_input.original_url') IS NULL) LIMIT 1""",
+                    (authority,provider,h)).fetchone():continue
+                seen.add(h)
+                yield {"hostname":h,"target_mask":missing,"original_url":None,"same_host":True}
                 if len(seen)>=limit:return
         elif mode=="fallback":
             seen=set()

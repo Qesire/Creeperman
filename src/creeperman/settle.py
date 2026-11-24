@@ -17,6 +17,8 @@ def settle(baseline,audit,model,decisions,out,*,rule_version,db_path=None,store=
     binding,authority_rows=audit_binding(audit,model)
     if baseline.name!=binding["baseline_id"]:raise ValueError("baseline name mismatch")
     w=weights(model)
+    decision_hash=sha(decisions)
+    checked_sources={}
     out.parent.mkdir(parents=True,exist_ok=True)
     catalog=sqlite3.connect(db_path) if db_path else None
     try:
@@ -50,6 +52,11 @@ def settle(baseline,audit,model,decisions,out,*,rule_version,db_path=None,store=
                                 raise ValueError("unsupported evidence type")
                             if not r.get("record_locator") or not r.get("date_semantics") or not re.fullmatch(r"[0-9a-f]{64}",r.get("source_sha256","")):
                                 raise ValueError("offline reviewed decision missing locator/date/hash")
+                            source=(decisions.parent/Path(r["source_path"])).resolve()
+                            if source not in checked_sources:
+                                checked_sources[source]=sha(source)
+                            if checked_sources[source]!=r["source_sha256"]:
+                                raise ValueError("offline source hash mismatch")
                         db.execute("INSERT OR IGNORE INTO q VALUES(?,?)",(h,y))
                         f.write(canonical(r))
                 db.commit()
@@ -71,6 +78,9 @@ def settle(baseline,audit,model,decisions,out,*,rule_version,db_path=None,store=
                             current=next(cur,None)
                     while current:
                         emit(*current);current=next(cur,None)
+                if sha(decisions)!=decision_hash:raise ValueError("decision ledger changed")
+                for source,digest in checked_sources.items():
+                    if sha(source)!=digest:raise ValueError("reviewed source changed")
                 eed=sum((Decimal(n)*w.get(t,Decimal(0)) for t,n in tld.items()),Decimal(0))
                 report={"schema":"reviewed-delta-v1","authority":binding,"rule_version":rule_version,
                         "scope":"locally adjudicated core-year delta; not organizer acceptance",
@@ -79,7 +89,7 @@ def settle(baseline,audit,model,decisions,out,*,rule_version,db_path=None,store=
                         "local_reviewed_new_eed":str(eed),
                         "minimum_increment":str(Decimal(binding["baseline_eed"])*Decimal(".01")),
                         "meets_reference_minimum":eed>=Decimal(binding["baseline_eed"])*Decimal(".01"),
-                        "decisions_sha256":sha(decisions),"files":{str(y):sha(p/f"{y}.txt") for y in YEARS}}
+                        "decisions_sha256":decision_hash,"files":{str(y):sha(p/f"{y}.txt") for y in YEARS}}
                 write_json(p/"report.json",report)
             finally:db.close()
             (p/"keys.sqlite").unlink()

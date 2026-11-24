@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+from datetime import timedelta
+from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from temporalio import activity
 from temporalio.client import Client
@@ -31,32 +33,63 @@ async def connect(address,namespace):
                                 tls=tls or bool(key), api_key=key)
 
 
+@contextmanager
+def collector_lock(state):
+    """One process for each local collector state. Cross-host ownership is operational."""
+    from pathlib import Path
+    p=Path(str(state)+".lock")
+    p.parent.mkdir(parents=True,exist_ok=True)
+    with p.open("a+b") as f:
+        if os.name=="nt":
+            import msvcrt
+            f.seek(0,2)
+            if f.tell()==0:f.write(b"0");f.flush()
+            f.seek(0)
+            try:msvcrt.locking(f.fileno(),msvcrt.LK_NBLCK,1)
+            except OSError:raise RuntimeError("collector state already in use")
+            try:yield
+            finally:
+                f.seek(0);msvcrt.locking(f.fileno(),msvcrt.LK_UNLCK,1)
+        else:
+            import fcntl
+            try:fcntl.flock(f.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except BlockingIOError:raise RuntimeError("collector state already in use")
+            try:yield
+            finally:fcntl.flock(f.fileno(),fcntl.LOCK_UN)
+
+
 async def serve(args):
     from pathlib import Path
     from .store import Store
     from .online import ArchiveCollector
+    from contextlib import nullcontext
     collector=None
+    lock=nullcontext()
     if args.role in ("ia","arquivo"):
         if not args.allow_online or not args.user_agent:
             raise ValueError("IA worker requires --allow-online and --user-agent")
-        collector=ArchiveCollector(Path(args.state or f"work/{args.role}-collector.sqlite"),args.interval,args.user_agent,args.role)
+        state=Path(args.state or f"work/{args.role}-collector.sqlite")
+        lock=collector_lock(state)
     elif args.allow_online:
         raise ValueError("compute worker never performs external verification")
-    client=await connect(args.address,args.namespace)
-    act=Activities(Store(args.store),args.role,collector)
-    concurrency=1 if args.role in ("ia","arquivo") else args.concurrency
-    with ThreadPoolExecutor(max_workers=concurrency) as pool:
-        worker=Worker(client,task_queue=args.queue,workflows=[BatchWorkflow],
-                      activities=[act.run],activity_executor=pool,
-                      max_concurrent_activities=concurrency)
-        await worker.run()
+    with lock:
+        if args.role in ("ia","arquivo"):
+            collector=ArchiveCollector(state,args.interval,args.user_agent,args.role)
+        client=await connect(args.address,args.namespace)
+        act=Activities(Store(args.store),args.role,collector)
+        concurrency=1 if args.role in ("ia","arquivo") else args.concurrency
+        with ThreadPoolExecutor(max_workers=concurrency) as pool:
+            worker=Worker(client,task_queue=args.queue,workflows=[BatchWorkflow],
+                          activities=[act.run],activity_executor=pool,
+                          max_concurrent_activities=concurrency)
+            await worker.run()
 
 
 async def submit(args,envelope):
     client=await connect(args.address,args.namespace)
     handle=await client.start_workflow(BatchWorkflow.run,envelope,
             id="creeperman-v1-"+envelope["job_id"],task_queue=args.queue,
-            id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE)
+            id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,execution_timeout=timedelta(hours=5))
     if args.wait:
         return {"workflow_id":handle.id,"manifest_ref":await handle.result()}
     return {"workflow_id":handle.id}
@@ -86,7 +119,7 @@ async def dispatch(args):
         wid="creeperman-v1-"+e["job_id"]
         try:
             handle=await client.start_workflow(BatchWorkflow.run,e,id=wid,task_queue=queue,
-                        id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE)
+                        id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,execution_timeout=timedelta(hours=5))
         except WorkflowAlreadyStartedError:
             handle=client.get_workflow_handle(wid)
         try:

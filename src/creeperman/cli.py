@@ -70,7 +70,7 @@ def main(argv=None):
     fo.add_argument("--store",required=True)
     fo.add_argument("--db",type=Path,required=True)
     fo.add_argument("--authority",required=True)
-    fo.add_argument("--mode",choices=["replay","metadata","fallback"],required=True)
+    fo.add_argument("--mode",choices=["replay","metadata","fallback","expand-host"],required=True)
     fo.add_argument("--provider",choices=["ia","arquivo"],required=True)
     fo.add_argument("--round-id",required=True)
     fo.add_argument("--limit",type=int,required=True)
@@ -146,11 +146,21 @@ def main(argv=None):
         a.out.parent.mkdir(parents=True,exist_ok=True)
         rejected=a.out.with_suffix(a.out.suffix+".rejected.jsonl")
         if a.out.exists() or rejected.exists(): raise FileExistsError(a.out)
-        with a.out.open("xb") as f,rejected.open("xb") as e:
-            for n,item,error in records(a.input,a.format):
-                if item is None: e.write(canonical({"record":n,"reason":error}))
-                else: f.write(canonical(item))
-        print(json.dumps({"input_sha256":sha(a.input),"output_sha256":sha(a.out),"format":a.format}))
+        import tempfile
+        initial_hash=sha(a.input); counts={"accepted":0,"rejected":0}
+        with tempfile.TemporaryDirectory(prefix=".extract-",dir=a.out.parent) as t:
+            pp=Path(t); normal=pp/"normal";bad=pp/"bad"
+            with normal.open("wb") as f,bad.open("wb") as e:
+                for n,item,error in records(a.input,a.format):
+                    if item is None:
+                        e.write(canonical({"record":n,"reason":error}));counts["rejected"]+=1
+                    else:
+                        f.write(canonical(item));counts["accepted"]+=1
+            if sha(a.input)!=initial_hash:raise ValueError("input changed during extraction")
+            result={"input_sha256":initial_hash,"output_sha256":sha(normal),
+                    "rejected_sha256":sha(bad),"format":a.format,**counts}
+            normal.rename(a.out);bad.rename(rejected)
+        print(json.dumps(result))
     elif a.cmd=="discovery-job":
         print(canonical(discovery_job(Store(a.store),a.input,source_id=a.source_id,
             origin_family=a.origin_family,fmt=a.format)).decode(),end="")
@@ -168,7 +178,7 @@ def main(argv=None):
         if a.cmd=="online-plan":
             action=a.action;rows=(r for _,r in jsonl(a.input))
         else:
-            action="lookup" if a.mode=="fallback" else a.mode
+            action="lookup" if a.mode in ("fallback","expand-host") else a.mode
             rows=followup_rows(a.db,a.authority,a.mode,a.provider,a.limit)
         for j in online_jobs(Store(a.store),rows,a.provider,action,a.authority,a.round_id,a.limit,a.batch_size):
             print(canonical(j).decode(),end="")
