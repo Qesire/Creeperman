@@ -8,6 +8,8 @@
 
 | 文档 | 内容 |
 |---|---|
+| [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、最小实现、首轮实验与推进依据 |
+| [成熟方案与来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md) | 批量索引、早期恢复、业界实践、实际访问与代码复用 |
 | [项目关键总结](docs/PROJECT_SUMMARY.md) | 任务目标、最新规则、计分、已有资源、主要风险与工作优先级 |
 | [问题定义](docs/PROBLEM_DEFINITION.md) | 研究对象、输入输出、集合与评分公式、证据状态、系统边界、验收条件 |
 | [两个开放研究问题](docs/OPEN_RESEARCH_QUESTIONS.md) | 1996 年以前资料的规模化恢复；网站年份的准确判定；可检验的研究路线 |
@@ -27,3 +29,8 @@
 解读日期：2026-11-24（UTC+8）。依据本地 `1996-2001KnowledgeDiscoveryCompetition` 任务包，主规则版本为 `Internet_Digital_Ark_Project_1020_Update.docx`，基线目录为 `merge261121-3`。不同材料之间的差异已明确标注。
 
 这里交付的是分析文档与核查材料；没有执行新的大规模域名发现、没有提交新的年度增量，也没有取得组织者的正式验收分数。原始巨量清单、受限来源和任务包原文不随这些总结上传。
+
+
+## 方案进展
+
+2026-11-24 新增来源与方案设计：以批量历史索引的基线外证据供给为主线，定向补证为辅线；复用旧 Creeper 和成熟归档组件。首轮验证重点是来源剩余容量、exact hostname-year 身份与年份语义、全局去重后的边际 EED。实际探针范围与未完成事项见[来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md)。

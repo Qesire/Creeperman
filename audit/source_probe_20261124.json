@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-11-24T06:38:07.972487+00:00",
+  "purpose": "Bounded access/schema probes plus one complete scan of the small Roteiro index; no baseline or evidence acceptance audit",
+  "observations": [
+    {
+      "name": "arquivo_roteiro_start",
+      "requested_url": "https://arquivo.pt/datasets/cdxj/Roteiro.cdxj",
+      "request_headers": {
+        "Range": "bytes=0-4095",
+        "Accept-Encoding": "identity",
+        "User-Agent": "Creeperman-source-probe/0.1"
+      },
+      "whole_source_scanned": false,
+      "requested_source_byte_start": 0,
+      "requested_source_byte_end_inclusive": 4095,
+      "response_url": "https://arquivo.pt/datasets/cdxj/Roteiro.cdxj",
+      "status": 206,
+      "headers": {
+        "Content-Range": "bytes 0-4095/13585912",
+        "Content-Length": "4096",
+        "Content-Type": "application/octet-stream",
+        "Content-Encoding": null,
+        "Last-Modified": "Sun, 04 Dec 2022 05:57:43 GMT",
+        "ETag": "\"cf4df8-5eefa3fd7c723\""
+      },
+      "response_body_bytes_read": 4096,
+      "response_body_sha256": "a620bfc6cf8fae24f97808a7783427a6da0b4bc2c1ba0882d541470f58c6b5b6",
+      "body_encoding": "identity",
+      "identity_source_range_confirmed": true,
+      "complete_lines_read": 13,
+      "parsed_cdxj_lines": 13,
+      "non_cdxj_lines": 0,
+      "sample_records": [
+        {
+          "timestamp": "19961013223438",
+          "original_url": "http://204.96.208.1:80/91/5/10.GIF",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220431-00003.arc.gz"
+        },
+        {
+          "timestamp": "19961013223438",
+          "original_url": "http://204.96.208.1:80/91/5/11.GIF",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220431-00003.arc.gz"
+        },
+        {
+          "timestamp": "19961013223440",
+          "original_url": "http://204.96.208.1:80/91/5/12.gif",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220431-00003.arc.gz"
+        },
+        {
+          "timestamp": "19961013223440",
+          "original_url": "http://204.96.208.1:80/91/5/14.exe",
+          "status": "200",
+          "mime": "application/octet-stream",
+          "filename": "AWP-Roteiro-20090510220431-00003.arc.gz"
+        }
+      ]
+    },
+    {
+      "name": "arquivo_roteiro_middle",
+      "requested_url": "https://arquivo.pt/datasets/cdxj/Roteiro.cdxj",
+      "request_headers": {
+        "Range": "bytes=5000000-5008191",
+        "Accept-Encoding": "identity",
+        "User-Agent": "Creeperman-source-probe/0.1"
+      },
+      "whole_source_scanned": false,
+      "requested_source_byte_start": 5000000,
+      "requested_source_byte_end_inclusive": 5008191,
+      "response_url": "https://arquivo.pt/datasets/cdxj/Roteiro.cdxj",
+      "status": 206,
+      "headers": {
+        "Content-Range": "bytes 5000000-5008191/13585912",
+        "Content-Length": "8192",
+        "Content-Type": "application/octet-stream",
+        "Content-Encoding": null,
+        "Last-Modified": "Sun, 04 Dec 2022 05:57:43 GMT",
+        "ETag": "\"cf4df8-5eefa3fd7c723\""
+      },
+      "response_body_bytes_read": 8192,
+      "response_body_sha256": "6f0a661ae758dc154ef90f6ed79eaba44032d211ec1edf9517fd4cdcd369d1ed",
+      "body_encoding": "identity",
+      "identity_source_range_confirmed": true,
+      "complete_lines_read": 25,
+      "parsed_cdxj_lines": 25,
+      "non_cdxj_lines": 0,
+      "sample_records": [
+        {
+          "timestamp": "19961013195318",
+          "original_url": "http://www.eng.auburn.edu:80/~gregturn/41/7/36.gif",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220346-00001.arc.gz"
+        },
+        {
+          "timestamp": "19961013195320",
+          "original_url": "http://www.eng.auburn.edu:80/~gregturn/41/7/37.gif",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220346-00001.arc.gz"
+        },
+        {
+          "timestamp": "19961013195320",
+          "original_url": "http://www.eng.auburn.edu:80/~gregturn/41/7/38.gif",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220346-00001.arc.gz"
+        },
+        {
+          "timestamp": "19961013195320",
+          "original_url": "http://www.eng.auburn.edu:80/~gregturn/41/7/39.gif",
+          "status": "200",
+          "mime": "image/gif",
+          "filename": "AWP-Roteiro-20090510220346-00001.arc.gz"
+        }
+      ]
+    },
+    {
+      "name": "arquivo_ia_start",
+      "requested_url": "https://arquivo.pt/datasets/cdxj/IA.cdxj",
+      "request_headers": {
+        "Range": "bytes=0-8191",
+        "Accept-Encoding": "identity",
+        "User-Agent": "Creeperman-source-probe/0.1"
+      },
+      "whole_source_scanned": false,
+      "requested_source_byte_start": 0,
+      "requested_source_byte_end_inclusive": 8191,
+      "response_url": "https://arquivo.pt/datasets/cdxj/IA.cdxj",
+      "status": 206,
+      "headers": {
+        "Content-Range": "bytes 0-8191/48994912989",
+        "Content-Length": "8192",
+        "Content-Type": "application/octet-stream",
+        "Content-Encoding": null,
+        "Last-Modified": "Thu, 29 Oct 2026 11:02:56 GMT",
+        "ETag": "\"b68530add-65ef89f3a52e9\""
+      },
+      "response_body_bytes_read": 8192,
+      "response_body_sha256": "8afaf239af4a6844aea2a7feccaeb4c90850eff8d6061c8e7875636791ed5ee0",
+      "body_encoding": "identity",
+      "identity_source_range_confirmed": true,
+      "complete_lines_read": 25,
+      "parsed_cdxj_lines": 25,
+      "non_cdxj_lines": 0,
+      "sample_records": [
+        {
+          "timestamp": "20001003202108",
+          "original_url": "http://127.0.0.1/nacional/topbar.gif",
+          "status": "404",
+          "mime": "text/html",
+          "filename": "PT-HISTORICAL-EMBEDS-2000-GROUP-AWF-20100830000000-00000.arc.gz"
+        },
+        {
+          "timestamp": "20000109120542",
+          "original_url": "http://194.219.219.1/services/guestbooks/fgb_now2.gif",
+          "status": "200",
+          "mime": "im",
+          "filename": "PT-HISTORICAL-EMBEDS-2000-GROUP-BAV-20100830000000-00000.arc.gz"
+        },
+        {
+          "timestamp": "20000304113437",
+          "original_url": "http://194.219.219.1/services/guestbooks/fgb_now2.gif",
+          "status": "200",
+          "mime": "im",
+          "filename": "PT-HISTORICAL-EMBEDS-2000-GROUP-BAQ-20100830000000-00000.arc.gz"
+        },
+        {
+          "timestamp": "20000305103014",
+          "original_url": "http://194.219.219.1/services/guestbooks/fgb_now2.gif",
+          "status": "200",
+          "mime": "im",
+          "filename": "PT-HISTORICAL-EMBEDS-2000-GROUP-BAV-20100830000000-00000.arc.gz"
+        }
+      ]
+    },
+    {
+      "name": "ukwa_cdx_directory",
+      "requested_url": "https://www.webarchive.org.uk/datasets/ukwa.ds.2/cdx/",
+      "request_headers": {
+        "Range": "bytes=0-8191",
+        "Accept-Encoding": "identity",
+        "User-Agent": "Creeperman-source-probe/0.1"
+      },
+      "whole_source_scanned": false,
+      "requested_source_byte_start": 0,
+      "requested_source_byte_end_inclusive": 8191,
+      "response_url": "https://www.webarchive.org.uk/datasets/ukwa.ds.2/cdx/",
+      "status": 200,
+      "headers": {
+        "Content-Range": null,
+        "Content-Length": null,
+        "Content-Type": "text/html",
+        "Content-Encoding": null,
+        "Last-Modified": null,
+        "ETag": null
+      },
+      "response_body_bytes_read": 3343,
+      "response_body_sha256": "75a34f372397e6cc993350610bc4a35e670dbbc17c45dbfc693ff190dedcd1b5",
+      "body_encoding": "identity",
+      "identity_source_range_confirmed": false,
+      "complete_lines_read": 74,
+      "parsed_cdxj_lines": 0,
+      "non_cdxj_lines": 74,
+      "sample_records": [],
+      "text_prefix": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/images/logo/ukwa-favicon.svg\" />\n    <!--\n      The header logo used to be discovered early only as a side effect of the"
+    }
+  ],
+  "all_sources_fully_scanned": false,
+  "roteiro_full_scan": {
+    "source_url": "https://arquivo.pt/datasets/cdxj/Roteiro.cdxj",
+    "checked_date": "2026-11-24",
+    "whole_source_scanned": true,
+    "http_status": null,
+    "request_headers": {
+      "Accept-Encoding": "gzip",
+      "User-Agent": "Creeperman-research/0.1"
+    },
+    "body_encoding": "gzip",
+    "wire_body_bytes": 1979168,
+    "identity_source_bytes": 13585912,
+    "identity_source_sha256": "0d8866492189b2509ec2981780e1df1f50e8cc9d4d618051cfaef7e725d1c8db",
+    "elapsed_seconds": 57.8,
+    "bytes_note": "wire_body_bytes counts the gzip HTTP response body, excluding protocol/TLS overhead; the SHA-256 hashes decompressed original index bytes. Range probes above explicitly requested identity encoding.",
+    "counts": {
+      "lines": 44379,
+      "ip_records": 184,
+      "syntax_valid_http_records": 43550,
+      "syntax_rejected_records": 645,
+      "status200_records": 43550,
+      "html2xx_records": 1811,
+      "html200_records": 1811,
+      "www_records": 33412,
+      "parse_errors": 0,
+      "duplicate_raw_lines": 0,
+      "duplicate_capture_identity": 0,
+      "non_http_records": 0,
+      "outside_core_records": 0
+    },
+    "capture_year_counts": {
+      "1996": 44379
+    },
+    "http_status_counts": {
+      "200": 44379
+    },
+    "mime_counts": {
+      "image/gif": 39728,
+      "image/jpeg": 2143,
+      "text/html": 1827,
+      "image/x-xbitmap": 417,
+      "binary/undefined": 195,
+      "text/plain": 61,
+      "application/x-troff-msvideo": 4,
+      "application/octet-stream": 3,
+      "audio/basic": 1
+    },
+    "unique_core_hostname_year_all_status": 4955,
+    "unique_core_hostnames": 4955,
+    "unique_core_hostname_year_status200": 4955,
+    "unique_core_hostname_year_html200": 939,
+    "unique_core_hostname_year_html2xx": 939,
+    "unique_core_hostname_year_by_year": {
+      "1996": 4955
+    },
+    "tld_hostname_year_all_status": {
+      "com": 1432,
+      "edu": 853,
+      "net": 314,
+      "uk": 303,
+      "fi": 214,
+      "pt": 189,
+      "org": 156,
+      "se": 146,
+      "gov": 119,
+      "ca": 119,
+      "us": 109,
+      "de": 92,
+      "it": 92,
+      "hu": 83,
+      "gr": 78,
+      "pl": 77,
+      "ch": 72,
+      "no": 62,
+      "au": 54,
+      "br": 34,
+      "mil": 32,
+      "sk": 30,
+      "ie": 28,
+      "fr": 28,
+      "ro": 25,
+      "jp": 20,
+      "dk": 17,
+      "es": 16,
+      "nl": 16,
+      "co": 15,
+      "tr": 12,
+      "kr": 12,
+      "lu": 11,
+      "ve": 7,
+      "cl": 7,
+      "is": 7,
+      "at": 7,
+      "za": 6,
+      "si": 5,
+      "cz": 5,
+      "be": 5,
+      "ee": 4,
+      "su": 4,
+      "mk": 3,
+      "ru": 3,
+      "hk": 3,
+      "int": 3,
+      "kw": 3,
+      "il": 3,
+      "mx": 3,
+      "sg": 2,
+      "li": 2,
+      "cn": 2,
+      "tw": 2,
+      "pe": 2,
+      "ec": 1,
+      "va": 1,
+      "bg": 1,
+      "lv": 1,
+      "hr": 1,
+      "lt": 1,
+      "nz": 1
+    },
+    "tld_hostname_year_html200": {
+      "com": 275,
+      "edu": 150,
+      "net": 83,
+      "pt": 65,
+      "uk": 39,
+      "org": 31,
+      "fi": 30,
+      "se": 24,
+      "ca": 18,
+      "gr": 18,
+      "it": 17,
+      "us": 17,
+      "gov": 17,
+      "au": 14,
+      "de": 14,
+      "pl": 13,
+      "hu": 11,
+      "ch": 11,
+      "br": 8,
+      "mil": 7,
+      "ro": 7,
+      "no": 6,
+      "sk": 6,
+      "tr": 5,
+      "fr": 5,
+      "co": 3,
+      "nl": 3,
+      "jp": 3,
+      "cz": 3,
+      "es": 3,
+      "ie": 3,
+      "dk": 3,
+      "be": 3,
+      "mx": 2,
+      "at": 2,
+      "lu": 2,
+      "int": 2,
+      "hk": 2,
+      "mk": 2,
+      "ee": 2,
+      "kr": 1,
+      "tw": 1,
+      "sg": 1,
+      "li": 1,
+      "cl": 1,
+      "il": 1,
+      "su": 1,
+      "is": 1,
+      "cn": 1,
+      "kw": 1
+    },
+    "syntax_rejected_examples": [
+      {
+        "line": 2044,
+        "hostname": "cui_www.unige.ch"
+      },
+      {
+        "line": 3007,
+        "hostname": "www.arlaw.com."
+      },
+      {
+        "line": 12372,
+        "hostname": "www.roadrunner.com."
+      }
+    ],
+    "html200_examples": [
+      {
+        "url": "http://karanet.uni-klu.ac.at:80/index.html",
+        "timestamp": "19961013145738",
+        "filename": "AWP-Roteiro-20090510220155-00000.arc.gz"
+      },
+      {
+        "url": "http://ikarus.gw.co.at:80/65/4/81.htm",
+        "timestamp": "19961013221152",
+        "filename": "AWP-Roteiro-20090510220409-00002.arc.gz"
+      },
+      {
+        "url": "http://www.edutainment.com.au:80/66/1/93.htm",
+        "timestamp": "19961013221642",
+        "filename": "AWP-Roteiro-20090510220409-00002.arc.gz"
+      }
+    ],
+    "identity_policy": "original/url hostname; lowercase; www retained; HTTP(S); no IP; ASCII labels 1..63 chars; hostname <=253 chars; alphabetic terminal label; trailing-dot and underscore forms excluded, not repaired. No historical TLD whitelist or website-evidence adjudication.",
+    "eed_upper_bound_for_parsed_set_if_all_novel_and_weight1": 4955,
+    "fraction_of_current_1percent_threshold_for_parsed_set": 0.00648301852226064,
+    "whole_source_raw_record_upper_bound": 44379,
+    "interpretation": "This is an index scan, not validated contributions. The 4955 EED bound applies only to the explicitly parsed set; excluded forms might be repairable after policy review. The looser 44379-record bound covers all rows before syntax filtering. No baseline difference, fixed-weight EED, website-evidence acceptance or official contribution was computed.",
+    "reproduction": "python audit/probe_archive_sources.py --full-roteiro --output work/source_probe_recheck.json; the current script implements the same counting policy and uses bounded read1 chunks for the gzip transfer.",
+    "http_status_note": "The completed gzip GET did not print or retain its status code; the independently recorded bounded identity requests returned 206, and an earlier gzip HEAD returned 200. Do not treat those as the full GET status."
+  },
+  "acquisition_attempts_before_success": [
+    {
+      "mode": "identity full GET line iteration",
+      "outcome": "interrupted after prolonged transfer",
+      "bytes_read": null,
+      "sha256": null,
+      "note": "No partial file or measured byte total was retained; no quantity is inferred."
+    },
+    {
+      "mode": "identity Range bytes=0-13585911",
+      "outcome": "90-second acquisition budget exceeded",
+      "complete": false,
+      "complete_chunks_read_bytes": 3145728,
+      "elapsed_seconds": 90.0008916249999,
+      "sha256": null
+    },
+    {
+      "mode": "gzip full GET",
+      "outcome": "complete; full identity length checked; parsed and hashed",
+      "complete": true,
+      "see": "roteiro_full_scan"
+    }
+  ]
+}
