@@ -4,6 +4,8 @@
 
 后续[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)补入具体历史文本材料和可实施接口。Usenet 消息、W3C 同期邮件、明确版本的 arXiv 论文提供另一种观察机制；它们的可得范围与基线外容量仍分别核定。本文件的 IA/WebBase 已近乎读完前提保持不变。
 
+最新[论文机制与发现操作](LITERATURE_AND_DISCOVERY_OPERATORS.md)核到 CMU 原版 WebKB、NCSA 通告镜像与晚期 DMOZ/GeoCities 的具体用途；定义引用、语义反搜与 item 追溯三个有界操作。原始采集血缘与托管方分别记录；TUMBA 2001 启动不能代替捕获日期，Archive-It 平台成立年也不能排除导入的旧记录。来源资格按具体收藏、对象和操作判断。
+
 ## 1. 当前前提与尚未跨过的门槛
 
 **WebBase 2001 已几乎读入，已使用的 IA 主体来源也几乎读完。**这是用户提供的项目事实，本轮没有重新测量其覆盖率。此前把 WebBase 2001 列为尚未开发的独立主力来源，已不适用于当前阶段。UKWA、Arquivo 或语言标注数据若来自同一批 IA 观察，也不能仅因交付渠道不同便重新计作新增供给。

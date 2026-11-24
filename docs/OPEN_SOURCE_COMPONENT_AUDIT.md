@@ -6,6 +6,8 @@
 
 最新[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)将这些复用边界落实到对象、查询计划、证据与请求预算。本文 §§8—10 补充本轮新列工具及 CDX 服务端的固定源码审计；只读源码，没有运行工具。
 
+本轮论文机制与发现操作的对应关系另见[文献与发现算子](LITERATURE_AND_DISCOVERY_OPERATORS.md)；§11 记录语义发现、历史外链与动态请求的复用入口。本轮对上游论文、文档和源码只作只读审查，没有运行论文脚本、项目代码、测试或真实候选接口。文献支持的机制、已定位的实现与 Creeperman 仍需适配的部分分别列明。
+
 ## 1. 先按输入输出选组件
 
 | 任务 | 有依据的复用对象 | Creeperman 保留的责任 |
@@ -261,7 +263,65 @@ host 图生产脚本还调用 `cc-pyspark` 的代码，本次没有据此声称�
 
 最小语义适配是保留 domain 顶层原始事件、补齐批量导出字段与缺失/失败状态。即便这些完成，registration 也只是注册线索；当前创建日期不能作为历史网站资格或安全排除依据。协议与当前 zone 的输入偏差见[流水线第 3.3 节](DISCOVERY_AND_VERIFICATION_PIPELINE.md#33-现代-zone-与-rdap-放到辅助路径)。
 
-## 11. 实施边界
+## 11. 语义发现与历史外链展开
+
+### 11.1 Huurdeman：从入链建立检索描述，不恢复目标正文
+
+原文：[Huurdeman et al., Lost but not forgotten: finding pages on the unarchived web, IJDL 2015](https://ir.cwi.nl/pub/23462/23462D.pdf)，DOI `10.1007/s00799-015-0153-3`。关键机制见 §§3.2—3.3，检索评估见 §7；本轮未绑定作者公开实现的仓库和固定提交。
+
+论文从荷兰国家图书馆的 **2012 年 ARC** 解析带非空锚文本的 `<a>`，保留 source URL、target URL、anchor text、crawl date 和 source hash；另建已归档 URL 的年度索引，判定目标是否在所研究的档案和同一年中出现。随后聚合入链锚文本与 URL 词项，分别构造 page surrogate 和 host surrogate，用 Terrier 评估 known-item retrieval。这里重建的是可检索描述，没有恢复未归档目标的原始正文；“未归档”也仅相对于其索引集合和时间范围。
+
+可迁移的是带来源的关系抽取、年度目标连接与 surrogate 检索。Creeperman 先以 **target URL 与观察年份/语境**组织描述，再投影 hostname；不直接将共享 ISP host 下不同机构的锚文本拼成同一实体。论文的 host 聚合、SURT 规范化和丢弃空锚/脚本/图片/iframe 的筛选不作为本题身份或发现范围的默认规则。扩展到正文上下文或其他资源引用属于本项目的适配，不归因于该论文已实现的抽取范围。
+
+### 11.2 Ben-David：历史清单驱动直接邻域发现，代码入口尚未绑定
+
+原文：[Ben-David, What does the Web remember of its deleted past? An archival reconstruction of the former Yugoslav top-level domain, New Media & Society 2016](https://journals.sagepub.com/doi/10.1177/1461444816643790)。本轮可核查的是官方摘要，完整正文受访问限制。
+
+摘要明确以 **4 份 `.yu` 删除前从活网取得的历史 URL 清单**为输入，自动取得 IA 快照并重建其直接超链接邻域；所得网络偏向塞尔维亚，也显示入口与档案覆盖的选择偏差。它支持“独立历史清单 → 来源快照 → 观察到的外链目标”的发现方式，不能据摘要补出完整抓取深度、日期过滤和去重实现。
+
+所指 `digitalmethodsinitiative/Web-Archival-Discovery` 在本轮 GitHub 读取返回 404，组织检索未得到可绑定入口，因此不列固定提交或核心代码路径；这不证明该项目从未存在。可采用论文的来源与邻接发现机制，不把未核实仓库写成已经可接入的组件。
+
+### 11.3 Bicho 与 Gomes：项目元数据查询与启发式，不是逐机构词签名反搜
+
+资料入口：[iPRES 2016 论文摘要](https://www.digipres.org/publications/ipres/ipres-2016/papers/preserving-websites-of-research-development-projects/)、[作者官方报告幻灯](https://sobre.arquivo.pt/wp-content/uploads/Preserving-Websites-Of-Research-Development-Projects.pdf)。固定仓库：[`arquivo/Research-Websites-Preservation@8851fe47815d625e104a42cc6962166ff208c74b`](https://github.com/arquivo/Research-Websites-Preservation/tree/8851fe47815d625e104a42cc6962166ff208c74b)。本轮方法归因依据报告与作者代码，不声称已经核读完整论文正文。
+
+| 固定代码入口 | 已确认机制 | 复用边界 |
+|---|---|---|
+| [scripts/recover_urls_bing.py](https://github.com/arquivo/Research-Websites-Preservation/blob/8851fe47815d625e104a42cc6962166ff208c74b/scripts/recover_urls_bing.py)，`recover` | 从 CORDIS 项目 acronym、title 构造基础查询，再加排除项或常见词等启发式，保存搜索结果 | 将结构化实体线索变成候选 URL；没有历史年份裁决，旧 Python/Bing 接口需替换 |
+| [scripts/extract_common_terms.py](https://github.com/arquivo/Research-Websites-Preservation/blob/8851fe47815d625e104a42cc6962166ff208c74b/scripts/extract_common_terms.py) | 对已采页面集合分析 IDF、平均 TF-IDF 与词频，提取语料常见词 | 确有 TF-IDF，但不是为每个缺失机构抽取 3—5 个特征词后反向检索 |
+| [classifier/bernoulliNB tuning.py](https://github.com/arquivo/Research-Websites-Preservation/blob/8851fe47815d625e104a42cc6962166ff208c74b/classifier/bernoulliNB%20tuning.py) | CountVectorizer 与 BernoulliNB 对已下载候选页面分类 | 主题分类不能证明实体身份相同，也不能证明目标年份存在 |
+
+可迁移“实体元数据 → 少量查询模板 → 候选 URL → 实体匹配与历史核查”的顺序。不能把找到搜索结果、分类为项目网站或被纳入后续采集，解释为已经获得 exact hostname-year 合格证据。
+
+### 11.4 TrackingExcavator：保留被阻断请求的目标与上下文
+
+原文：[Lerner et al., Internet Jones and the Raiders of the Lost Trackers, USENIX Security 2016](https://files.usenix.org/s3fs-public/cdn/sec16_paper_lerner_1.pdf)；[官方项目页](https://trackingexcavator.cs.washington.edu/researchers.html)指向华盛顿大学仓库，而非所指的 UCSB 仓库。固定版本：[`UWCSESecurityLab/trackingExcavator@5b946b6fef48141c5e6ca6f9e1d6977b877177ab`](https://github.com/UWCSESecurityLab/trackingExcavator/tree/5b946b6fef48141c5e6ca6f9e1d6977b877177ab)。README 也说明发布基础设施用于 2017 年后续研究，因此不把该提交全部实现视为 2016 年实验版本的逐项复现。
+
+| 固定代码入口 | 已确认机制 | 必要适配或未确定处 |
+|---|---|---|
+| [platform/Background.js](https://github.com/UWCSESecurityLab/trackingExcavator/blob/5b946b6fef48141c5e6ca6f9e1d6977b877177ab/platform/Background.js)，`logRequestStart`、`onBeforeSendHeaders` | 保存请求 URL、referrer、frame、阻断原因；先登记，再取消逃出 Wayback 的请求 | 请求目标是候选观察，不能当目标成功响应；`logRequestEnd` 保存状态与响应头，正文为 `null` |
+| [Measure/Utils.js](https://github.com/UWCSESecurityLab/trackingExcavator/blob/5b946b6fef48141c5e6ca6f9e1d6977b877177ab/Measure/Utils.js)，`searchTimemap`、`waybackGet`、`modifyAndChunkURLs` | 先查较近时间范围，失败后可回退全时段，选计划测量日期之前最近快照 | 选中结果可能远早于目标年份；必须核对实际捕获日期 |
+| [platform/WaybackProcessing.js](https://github.com/UWCSESecurityLab/trackingExcavator/blob/5b946b6fef48141c5e6ca6f9e1d6977b877177ab/platform/WaybackProcessing.js) | 旧式 replay URL 识别和资源地址抽取辅助函数 | 匹配形式有限且从 `pathname` 抽取，不是保留完整 original URL 的通用解析器 |
+| `platform/Background.js`，`isPartOfWaybackToolbar` | 已读文件中存在 toolbar 识别函数定义 | 未绑定到完整去回放壳的调用链，不能仅凭该定义声称已过滤全部档案注入内容 |
+
+论文 §§3.1、4.1—4.2 的可迁移发现是：资源因 robots exclusion、未归档或 escape 而缺少响应时，浏览器仍可能记录尝试请求的目标。但被阻断响应里的 cookie、脚本与后续生成请求仍可能完全不可见；这不是恢复被阻断网站的正文或完整行为。论文在 **analysis 阶段**过滤偏离计划 `measurement timestamp` 超过六个月的资源，这既不是 exact year，也不是统一围绕顶层页面实际捕获时间。该过滤没有在本轮已读的测量路径中绑定到具体实现文件，不写成已确认可直接调用的时间裁决器。
+
+可复用“请求目标与触发上下文分开保存、先记录再阻断 live escape”的模式。动态请求发现属于静态引用抽取之外的补充；保留资源真实时间、回放产生的行为和原始页面引用之间的区别。
+
+### 11.5 Hyphe：历史抓取模式存在，obtained 日期仍需独立核对
+
+固定版本：[`medialab/hyphe@0f59241dd57afeb82c4d791cc66505f024760fb9`](https://github.com/medialab/hyphe/tree/0f59241dd57afeb82c4d791cc66505f024760fb9)。以下结论针对该提交，不倒推其 2016 年论文版本已经具有全部历史档案能力。
+
+| 固定代码入口 | 已确认机制 | Creeperman 需要保留的责任 |
+|---|---|---|
+| [hyphe_backend/lib/webarchives.py](https://github.com/medialab/hyphe/blob/0f59241dd57afeb82c4d791cc66505f024760fb9/hyphe_backend/lib/webarchives.py) | 各档案的 URL 前缀、banner、permalink 等配置 | 作为档案专用适配入口，不当统一可靠的捕获时间证明 |
+| [hyphe_backend/crawler/hcicrawler/spiders/pages.py](https://github.com/medialab/hyphe/blob/0f59241dd57afeb82c4d791cc66505f024760fb9/hyphe_backend/crawler/hcicrawler/spiders/pages.py) | `webarchives.date/days_range` 设置时间窗口；检查部分重定向、档案头或 permalink 的日期；移除部分 banner，解包历史链接，按前缀与深度管理 frontier | 时间窗口可以跨年；实际返回的 capture、原始 URL 与竞赛身份分别核对 |
+| 同文件的 `_request`、`_make_raw_page` | `_request` 可将请求日期写入 `archive_timestamp`，`_make_raw_page` 再将其写为 `archive_date_obtained`；`timestamp` 使用当前处理时间 | `archive_date_obtained` 存在沿用请求日期的路径，不保证已经独立确认实际捕获时间；当前处理时间也不能当历史日期 |
+| [hyphe_backend/crawler/hcicrawler/linkextractor.py](https://github.com/medialab/hyphe/blob/0f59241dd57afeb82c4d791cc66505f024760fb9/hyphe_backend/crawler/hcicrawler/linkextractor.py) | 提取 `<a href>` 并处理相对链接 | 不覆盖脚本、图片、iframe 等全部资源，也不保证复合页面的资源时间一致 |
+
+可迁移有界 frontier、档案适配与日期漂移标记；其 web entity/LRU 聚合不作为 exact hostname 身份。上述语义方法共同提供候选、描述和观察入口；线索资料可以晚于核心计分时间窗，而合格年份仍由适用证据确定。普通外链或动态请求不自动完成取证；符合规则的可信历史目录或 hostgraph 可以走独立证据分支，无须统一改写成 HTTP 200 HTML 捕获。
+
+## 12. 实施边界
 
 本轮确定的自写部分是：**exact hostname 与年份、来源祖源、证据规则、可替代 witness、年度差集、资料处理范围及查询完成语义。**归档格式解析、压缩索引、分布式任务生命周期和通用内容特征已有代码可用。
 

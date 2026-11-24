@@ -6,6 +6,8 @@
 
 最新用户信息说明 WebBase 2001 几乎读入、已使用的 IA 主体来源几乎读完；此前提升 WebBase 新增来源优先级的判断已撤下。当前入口为[档案起源与剩余发现](ARCHIVE_ORIGINS_AND_RESIDUAL_FRONTIER.md)；新列归档项目的代码能力见[组件审计](OPEN_SOURCE_COMPONENT_AUDIT.md)。本文件保留已有来源说明和历史探针，不因渠道不同便认定有新供给。
 
+最新[论文机制与发现操作](LITERATURE_AND_DISCOVERY_OPERATORS.md)补充三种发现机制、WebKB 原始/派生版本、NCSA 镜像、晚期 DMOZ/GeoCities、档案实际年代和远程能力。该文的引用校准同时修正 Bicho 方法、TrackingExcavator 归属、11.8% 未绑定统计及 88.45% 的对象范围；本轮没有新增历史探针或真实候选请求。
+
 ## 调查带来的设计结论
 
 1. **批量索引与按需回查已有成熟路径。** Arquivo 的官方 bulk 流程、ArchiveSpark 和 Webrecorder 可以直接提供方法和组件。

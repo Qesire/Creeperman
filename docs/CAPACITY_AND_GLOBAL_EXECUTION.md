@@ -8,6 +8,8 @@
 
 最新接口以[发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md)为准：离线资料、在线发现和在线补证分别计成本，已充分的证据直接结算；在线任务使用有界窗口、exact host 缺年选择和明确的查询完成语义。本文补入端点配额资料及准入条件，没有把公开限额当实测吞吐。
 
+本轮新增操作及论文适用边界见[文献与发现操作](LITERATURE_AND_DISCOVERY_OPERATORS.md)；本文第 11 节只补充它们如何占用现有预算、进入批次和安排有限复核。
+
 ## 1. 先把四种门槛分开
 
 | 门槛 | 必须回答的问题 | 增加全球节点的作用 |
@@ -326,6 +328,38 @@ NATS JetStream 的持久 pull consumer、批量领取和确认可解决消息投
 
 这些资产中的产率、持续吞吐与价格组合均保留其原有情景含义。旧控制节点的 $35/$89 等组合不构成 Temporal 服务、持久化与运维的预算；不得因计算输出有精确小数就把条件估算当成已验证计划。
 
+## 11. 新发现操作与有限复核预算
+
+### 11.1 三类操作分别记成本，共用提供者上限
+
+| 操作 | 有界任务与独立成本 | 准入及停止条件 |
+|---|---|---|
+| `typed_links`：按链接关系类型展开 | 对明确 artifact/version 提取正文引用、导航、资源依赖或跳转等关系；已有文件的解析计 CPU、读取字节和输出量，另取页面及目标补证计实际 HTTP | 固定输入范围、解析版本和展开上限；已知 host 的页面仍可产生未知目标，目标去重不替代资料展开进度 |
+| `semantic_search`：语义检索发现 | 在已明确支持的接口或已有正文上执行查询；分别限制查询数、分页、返回条目与后续 witness 请求；本地索引和语义计算另计资源 | 固定来源、年代、查询版本及结果窗口；没有接口依据时不假定支持语义搜索；检索相关性不直接授予历史资格 |
+| `provenance_item_inventory`：按来源线索展开 item 库存 | 从已取得响应的来源线索核对 item 身份和文件清单；元数据请求、清单分页、原件下载及 Range 各自进入预算 | 先核对 item/file 绑定、来源祖源和未处理范围；元数据可读不推出原件可下载，新的 item 不自动代表新的独立来源 [C21] |
+
+三类操作各有请求与字节子预算，但都受第 5—6 节的 endpoint/provider 共同上限约束。重试计入发起操作的实际成本；合并后的一个 HTTP 请求只记一次。发现批次产生候选及证据需求，在线补证继续受第 2.4 节准入约束；最终 EED 经共享证据判定和全局归并只记一次，不相加各操作的候选数或自报收益。
+
+### 11.2 查询结局决定后续动作
+
+| 结局 | 保留状态与调度含义 |
+|---|---|
+| `complete-scoped-negative` | 已完整执行明确来源、版本/观察时刻、匹配方式、年份和过滤条件的查询，其范围内无目标结果；按该查询键缓存。TTL 到期只恢复重新调度资格，不自动入队，也不推出整个 host 或历史网络没有证据 |
+| `429 / provider cooldown` | 保存响应及 Retry-After/退避期限，在适用预算作用域内暂停相关操作；共享冷却优先于任何任务的 TTL 到期，不生成语义空结果 |
+| `transient` | 网络错误、超时及判为可恢复的服务错误使用有限尝试数或总期限；保存安全检查点，重试消耗原提供者预算，耗尽后保留未完成状态 |
+| `blocked` | 已识别的权限或政策阻断保留原因；只有访问条件或来源契约改变后才重新评估，不进入无限重试 |
+| `truncated / partial` | 分页未完、窗口或预算耗尽时保存完成范围及 cursor；是否续作重新经过预算准入，部分返回不能登记为完整空结果 |
+
+缓存键和完成范围应足以区分这些结局。来源版本变化、新证据指向尚未检查的范围或访问能力恢复，可以触发重新评估；TTL 本身不是新的证据。本轮“11.8% 波动率”尚未绑定到可核对的原文分母和观察窗口，不能作为 TTL 或重试概率参数。[C21]
+
+### 11.3 限制复核负荷，沿用已有执行协议
+
+若有 `N_negative` 条负查询，每条无限地每 `T` 秒重查一次，检查时间均匀摊开且每次只发一个请求，则长期平均额外负荷为 `R_review = N_negative / T`，单位是 **request/second**。这是调度算术，不是论文测得的变化率；分页和重试还会增加成本。例如 1000 万条每 30 天复核一次，平均约需 3.86 req/s，仅这一项就可能消耗主要查询容量。因此复核采用条件触发与有界请求份额，和新发现、补证一起接受提供者上限约束；积压的到期条目可以继续留在持久清单中。
+
+三类新操作和有限复核直接使用第 6 节的 Temporal 批次 Activity、显式 manifest、检查点及幂等归并，不新增 PGMQ 或任务租约层。manifest 增加操作版本、查询/展开范围、完成状态、续作位置和实际成本即可；外部请求仍由提供者主采集区的共享 limiter 管理，全球文件 worker 处理已有副本。
+
+探测查询可以省去暂不需要的 `digest` 输出；已读 Java CDX 与 pywb 实现只支持据此确认减少相应输出字段和字节，不能宣称省去索引扫描或显著降低延迟。`resolveRevisits` 是独立选项，不能把省略 digest 当成关闭 revisit 处理。[C22]
+
 ## 资料与复核位置
 
 - **[C0] 竞赛与基线。** [问题定义](PROBLEM_DEFINITION.md)、[当前基线审计](BASELINE_AUDIT.md)、[方案设计](SOLUTION_DESIGN.md)；冻结基线 `merge261121-3`。未重新解释或清洗分母。
@@ -349,3 +383,5 @@ NATS JetStream 的持久 pull consumer、批量领取和确认可解决消息投
 - **[C18] Temporal Activity 速率。** Python SDK `9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c` 的 [Worker 参数](https://github.com/temporalio/sdk-python/blob/9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c/temporalio/worker/_worker.py)与 [Activity worker](https://github.com/temporalio/sdk-python/blob/9f2195a7f0a19ddb55c6ec5f9fe70943051ada3c/temporalio/worker/_activity.py)。
 - **[C19] Prefect 替代方案。** 固定 `97915452decd5b53b038cdf0e429109343370f9d` 的 [RetryFailedFlows](https://github.com/PrefectHQ/prefect/blob/97915452decd5b53b038cdf0e429109343370f9d/src/prefect/server/orchestration/core_policy.py)及[失联 flow 文档](https://github.com/PrefectHQ/prefect/blob/97915452decd5b53b038cdf0e429109343370f9d/docs/v3/advanced/detect-zombie-flows.mdx)。
 - **[C20] 本轮流水线与请求依据。** [发现与取证流水线](DISCOVERY_AND_VERIFICATION_PIPELINE.md) §§5—9；[Arquivo APIs](https://github.com/arquivo/pwa-technologies/wiki/APIs)、[Wayback issue #205](https://github.com/edgi-govdata-archiving/wayback/issues/205)、[v0.5.1 发布说明](https://wayback.readthedocs.io/en/latest/release-history.html)。队列准入式为本项目规划推导，参数尚未测量。
+- **[C21] 本轮文献与来源语义。** [文献与发现操作](LITERATURE_AND_DISCOVERY_OPERATORS.md)；Hantke et al., [You Call This Archaeology?](https://swag.cispa.saarland/papers/hantke2023archaeology.pdf)，CCS 2023；IA [Item Metadata API](https://archive.org/developers/md-read.html)。来源线索须核对 item/file，不能直接等同独立祖源。Bornand et al. 的已核对原文是 [Routing Memento Requests Using Binary Classifiers](https://arxiv.org/pdf/1606.09136)，JCDL 2016；本轮未绑定“Bornand 2019 / 11.8% 波动率”，未用其定参。
+- **[C22] CDX 字段投影与 revisit。** `internetarchive/wayback@a331f968c2a8b3ef56b82dc3a9faed11900e84b2` 的 [FieldSelectorProcessor](https://github.com/internetarchive/wayback/blob/a331f968c2a8b3ef56b82dc3a9faed11900e84b2/wayback-cdx-server/src/main/java/org/archive/cdxserver/processor/FieldSelectorProcessor.java)及 [CDXServer](https://github.com/internetarchive/wayback/blob/a331f968c2a8b3ef56b82dc3a9faed11900e84b2/wayback-cdx-server/src/main/java/org/archive/cdxserver/CDXServer.java)；`webrecorder/pywb@28750e62b7c00d0bb72643b2ae68b6c2ea7a0abf` 的 [cdxops.py](https://github.com/webrecorder/pywb/blob/28750e62b7c00d0bb72643b2ae68b6c2ea7a0abf/pywb/warcserver/index/cdxops.py)。字段投影在输出阶段，revisit 由独立查询选项控制；未做性能测试，也不据此断言当前 IA 全部生产后端实现。
