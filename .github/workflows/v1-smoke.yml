@@ -1,0 +1,43 @@
+name: Creeperman v1 offline and Temporal smoke
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'pyproject.toml'
+      - '.github/workflows/v1-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e ".[test]"
+      - run: python -m pytest -q tests/test_v1.py
+      - run: |
+          python examples/make_fixture.py work/synthetic
+          creeperman census --baseline work/synthetic/synthetic-baseline --audit work/synthetic/audit.json --model work/synthetic/model.json --sources work/synthetic/sources.json --out work/census
+          creeperman discovery-job --store work/store --input work/synthetic/source-a.jsonl --source-id fixture --origin-family synthetic --format observations --allow-source > work/job.json
+          creeperman run-local --store work/store --job work/job.json > work/result.json
+          creeperman collect --store work/store --db work/catalog.sqlite --refs work/result.json
+          creeperman plan --store work/store --census work/census --limit 3 --batch-size 2 > work/plans.jsonl
+  temporal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e ".[worker,test]"
+      - run: RUN_TEMPORAL_SMOKE=1 python -m pytest -q tests/test_temporal.py
