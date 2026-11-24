@@ -147,6 +147,8 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
             hinted_ub = Decimal(0)
             per_year = Counter()
             tlds = Counter()
+            source_ceilings = {s: [Decimal(0), Decimal(0)] for s in by_source}
+            source_exclusive_hinted = {s: Decimal(0) for s in by_source}
             with (p / "opportunities.jsonl").open("wb") as f, (p / "core_new_candidates.txt").open("w", encoding="ascii", newline="\n") as active:
                 cur = db.execute("""SELECT hits.h,hits.source,hits.hint,hits.mentions,
                     hits.sample_url,hits.sample_line,resolved.baseline_mask,coalesce(local_qualified.mask,0)
@@ -160,6 +162,11 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
                     in_pool = any(r[1] in pool_ids for r in g)
                     new_discovery = any(r[1] not in pool_ids for r in g)
                     hint = 0
+                    hint_once, hint_multiple=0,0
+                    for rr in g:
+                        hint_multiple |= hint_once & rr[2]
+                        hint_once |= rr[2]
+                    exclusive_mask = hint_once & ~hint_multiple
                     for _, sid, b, count, url, line, _, _ in g:
                         hint |= b
                         st = by_source[sid]
@@ -171,6 +178,9 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
                         st["hosts_with_missing_years"] += int(missing != 0)
                         st["hinted_missing_host_years"] += (b & missing).bit_count()
                         st["all_missing_host_years_ceiling"] += missing.bit_count()
+                        source_ceilings[sid][0] += score(missing,h,w)
+                        source_ceilings[sid][1] += score(b & missing,h,w)
+                        source_exclusive_hinted[sid] += score(b & missing & exclusive_mask,h,w)
                     union["unique_hosts"] += 1
                     union["already_in_candidate_pool"] += int(in_pool)
                     union["discovery_hosts_new_to_pool_and_core"] += int(new_discovery and not in_pool and covered == 0)
@@ -193,6 +203,7 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
                         "local_qualified_mask": local_mask, "in_existing_pool": in_pool,
                         "missing_mask": missing, "hint_mask": hint,
                         "hinted_missing_mask": missing & hint,
+                        "english_weight":str(w.get(h.rsplit(".",1)[-1],Decimal(0))),
                         "sources": [{"source_id": r[1], "hint_mask": r[2],
                             "mentions": r[3], "sample_url": r[4], "sample_line": r[5]} for r in g]}))
             report = {"schema": "census-v1", "authority": binding,
@@ -202,7 +213,11 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
                 "sources": source_info, "union": dict(union),
                 "baseline_eed_reference":binding["baseline_eed"],
                 "minimum_increment_reference":str(Decimal(binding["baseline_eed"])*Decimal("0.01")),
-                "per_source_nonadditive": {s: dict(v) for s,v in by_source.items()},
+                "per_source_nonadditive": {s: {**dict(v),
+                    "all_missing_eed_ceiling_not_score":str(source_ceilings[s][0]),
+                    "hinted_missing_eed_ceiling_not_score":str(source_ceilings[s][1]),
+                    "exclusive_hinted_eed_ceiling_not_score":str(source_exclusive_hinted[s])}
+                    for s,v in by_source.items()},
                 "missing_by_year_ceiling": {str(y):per_year[str(y)] for y in YEARS},
                 "candidate_hosts_by_tld": dict(sorted(tlds.items())),
                 "all_missing_eed_ceiling_not_score": str(union_ub),

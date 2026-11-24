@@ -244,7 +244,8 @@ def page_rows(path, fmt):
                 if len(body)>MAX_BODY: continue
                 yield {"url":url,"year":dt.year,"locator":f"record:{n}",
                        "html":decode_body(body),"capture_date":date,
-                       "date_semantics":"WARC-Date","record_id":rec.rec_headers.get_header("WARC-Record-ID")}
+                       "date_semantics":"WARC-Date","record_id":rec.rec_headers.get_header("WARC-Record-ID"),
+                       "capture_status":rec.http_headers.get_statuscode()}
     else:
         opener=gzip.open if path.suffix==".gz" else open
         with opener(path,"rt",encoding="utf-8") as f:
@@ -282,8 +283,9 @@ def extract(path:Path,fmt:str):
     elif fmt in ("webkb-tar","pages-jsonl","warc"):
         for p in page_rows(path,fmt):
             try:
+                detail={k:p[k] for k in ("capture_date","record_id","capture_status") if p.get(k) is not None}
                 yield clue(p["url"],p["year"],"source_page_hint",p["locator"],
-                           date_semantics=p["date_semantics"]),None
+                           date_semantics=p["date_semantics"],**detail),None
                 for row in html_clues(p["html"],p["url"],p["year"],p["locator"],
                         replay_provider=p.get("replay_provider"),replay_url=p.get("replay_url")):
                     yield row,None

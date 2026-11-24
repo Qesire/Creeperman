@@ -4,7 +4,16 @@
 
 本项目面向 Internet Digital Ark：持续发现历史主机名，为每一个入选的 hostname-year 保留确切的网站证据，形成可供后续历史网页采集使用的年度清单，并用来源收益与失败记录改进下一轮发现策略。
 
-## v0.1 实现
+## v0.2 实现与移交
+
+**下一位执行 Agent 首先阅读 [AGENTS.md](AGENTS.md) 和 [本地运行交接手册](docs/HANDOFF_LOCAL_AGENT.md)。** 已完成原始资料适配、联合差集、双馆在线查询/回放、全文反搜、来源追溯、Temporal 批次执行、结果导入和经裁决年度结算。
+
+- [具体来源登记表](config/source_registry.json)：材料入口、祖源、格式、优先级、剩余范围及访问限制。
+- 安装：python -m pip install -e ".[worker,archive,test]"。
+- [v0.2 第一轮 CI](https://github.com/Qesire/Creeperman/actions/runs/45413440577)：15 项离线回归及 2 项真实 Temporal 集成测试通过（固定网络响应）。
+- 真实候选与竞赛任务包不在公共仓库；未测得真实剩余 EED，未执行真实多馆批量请求或跨区部署。生产前按交接手册完成当地预检和有限验收。
+
+## v0.1 实现（历史）
 
 - [可执行代码、命令、样例和验收边界](docs/IMPLEMENTATION_V1.md)：离线差集摸底、真实 Temporal SDK 工作流与 Worker、内容寻址文件传输、有限 IA CDX 元数据补证、幂等结果归并。
 - 安装：`python -m pip install -e ".[worker,test]"`；仅离线摸底可用 `python -m pip install -e .`。

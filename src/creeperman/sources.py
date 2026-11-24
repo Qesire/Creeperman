@@ -51,7 +51,9 @@ def records(path: Path, fmt: str):
                     kind = str(row.get("kind", "observation"))
                 details = {k: row[k] for k in ("locator","source_original_url","anchor_text",
                     "context","context_before","reference_role","date_semantics","raw_reference",
-                    "message_id","date_header","position","tag","attribute","rewrite")
+                    "message_id","date_header","position","tag","attribute","rewrite",
+                    "capture_date","record_id","capture_status","capture_timestamp","title","collection",
+                    "catalog_manifest","catalog_ordinal","entity_name","project_title","acronym")
                     if k in row} if fmt=="observations" else {}
                 yield n, {**details,"hostname": h, "original_url": url, "observed_year": year,
                           "kind": kind}, None

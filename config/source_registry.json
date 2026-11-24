@@ -1,0 +1,134 @@
+{
+  "schema": "source-registry-v1",
+  "checked_date": "2026-11-24",
+  "scope": "Documented entry points, not downloaded material or proof of residual capacity. Use only approved source artifacts.",
+  "sources": [
+    {
+      "id": "usenet-comp-linux-announce",
+      "origin_family": "usenet-posts",
+      "format": "usenet-zip",
+      "priority": "P0",
+      "artifact": "comp.os.linux.announce.mbox.zip",
+      "url": "https://archive.org/download/usenet-comp/comp.os.linux.announce.mbox.zip",
+      "contract": "Numeric Deja separators; message Date is a hint, not capture. Current object availability/size must be confirmed before download.",
+      "role": "discovery"
+    },
+    {
+      "id": "usenet-comp-sys-dec",
+      "origin_family": "usenet-posts",
+      "format": "usenet-zip",
+      "priority": "P0",
+      "artifact": "comp.sys.dec.mbox.zip",
+      "url": "https://archive.org/download/usenet-comp/comp.sys.dec.mbox.zip",
+      "contract": "Known group file listing; deduplicate crossposts and do not assume all messages are target years.",
+      "role": "discovery"
+    },
+    {
+      "id": "cmu-webkb-original",
+      "origin_family": "cmu-webkb-1997",
+      "format": "webkb-tar",
+      "priority": "P0",
+      "artifact": "webkb-data.gtar.gz",
+      "url": "https://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-20/www/data/webkb-data.gtar.gz",
+      "documentation": "https://www.cs.cmu.edu/afs/cs/project/theo-20/www/data/",
+      "contract": "January 1997 collection, 8282 pages, basename encodes URL via caret. Do not substitute LINQS/NetKit derivative graph.",
+      "role": "discovery"
+    },
+    {
+      "id": "w3c-www-talk",
+      "origin_family": "w3c-mail",
+      "format": "text-jsonl",
+      "priority": "P1",
+      "documentation": "https://lists.w3.org/Archives/Public/www-talk/",
+      "contract": "Public monthly HTML or authorized mbox. Preserve individual Date and source record; public HTML does not grant bulk mbox access.",
+      "role": "discovery"
+    },
+    {
+      "id": "arxiv-versions",
+      "origin_family": "arxiv-submitted-text",
+      "format": "text-jsonl",
+      "priority": "P1",
+      "documentation": "https://info.arxiv.org/help/bulk_data_s3.html",
+      "contract": "Requester Pays; actual source/PDF version must be dated separately. Do not use latest version to establish early dates.",
+      "role": "discovery"
+    },
+    {
+      "id": "ncsa-whats-new",
+      "origin_family": "ncsa-editorial-directory",
+      "format": "pages-jsonl",
+      "priority": "P1",
+      "documentation": "https://kitchencloset.com/realstuff/ncsa/whats_new-archive/1996/whats-new-9601.html",
+      "contract": "Mirror; establish month, publication and lineage before review. Not a verified complete dump.",
+      "role": "discovery"
+    },
+    {
+      "id": "jisc-linkage",
+      "origin_family": "alexa-ia-derived",
+      "format": "jisc",
+      "priority": "residual-only",
+      "documentation": "https://britishlibrary.github.io/data.bl.uk/ukwa.ds.2/host-linkage/",
+      "contract": "Two-column TSV year|sourcehost|targethost then count. Source capture year, not necessarily target response. Only reopen known missing operations.",
+      "role": "discovery"
+    },
+    {
+      "id": "arquivo-collections",
+      "origin_family": "collection-specific",
+      "format": "cdxj",
+      "priority": "residual-only",
+      "documentation": "https://arquivo.pt/datasets/cdxj/",
+      "contract": "Bind actual collection lineage, date semantics and original URL; IA-derived collections not independent.",
+      "role": "discovery"
+    },
+    {
+      "id": "dmoz-late-dumps",
+      "origin_family": "odp-directory",
+      "format": "dmoz-rdf",
+      "priority": "P2",
+      "documentation": "https://archive.org/details/dmoz-rdf-20150327",
+      "contract": "Late RDF may supply clues. No target-period dump bound. Adapter deliberately leaves year unset.",
+      "role": "discovery"
+    },
+    {
+      "id": "geocities-2009",
+      "origin_family": "archiveteam-geocities-2009",
+      "format": "pages-jsonl",
+      "priority": "P2",
+      "documentation": "https://wiki.archiveteam.org/index.php/GeoCities",
+      "contract": "Use original path-to-URL mapping and actual 2009 collection time; never backdate. Do not assume this is WARC.",
+      "role": "discovery"
+    },
+    {
+      "id": "archive95",
+      "origin_family": "original-media-specific",
+      "format": "pages-jsonl",
+      "priority": "P1",
+      "documentation": "https://archive95.net/sources/",
+      "contract": "Use original media, raw URL mappings, dates and transformation lineage; normalized presentation is not exact host identity.",
+      "role": "discovery"
+    },
+    {
+      "id": "pandora",
+      "origin_family": "nla-selection",
+      "priority": "manual",
+      "documentation": "https://pandora.nla.gov.au/historyachievements.html",
+      "contract": "Independent early capture/selection records; public machine-query contract unbound. Trove ordinary API not AWA website search.",
+      "role": "manual"
+    },
+    {
+      "id": "webarchiv-cz",
+      "origin_family": "czech-national-webarchive",
+      "priority": "manual",
+      "documentation": "https://webarchiv.cz/en/faq",
+      "contract": "2001 first archive; public authorization and remote retrieval differ by collection. No fabricated CDX adapter.",
+      "role": "manual"
+    },
+    {
+      "id": "webbase-2001",
+      "origin_family": "stanford-webbase",
+      "priority": "near-exhausted",
+      "documentation": "https://law.di.unimi.it/webdata/webbase-2001/",
+      "contract": "User reports almost entirely consumed. Only explicitly unprocessed ranges/roles reopen.",
+      "role": "residual"
+    }
+  ]
+}
