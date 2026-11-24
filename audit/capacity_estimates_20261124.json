@@ -1,0 +1,718 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-24",
+  "status": "Planning scenarios, not measured source yields or deployed system throughput",
+  "baseline_id": "merge261121-3",
+  "null_semantics": {
+    "required_units_or_days": "Positive target with zero throughput or yield is unreachable under that scenario",
+    "fraction_of_remaining_gate": "Undefined when the remaining gap is zero"
+  },
+  "targets": [
+    {
+      "target_percent": "1",
+      "exact_threshold_eed": "764304.464446",
+      "minimum_four_decimal_eed": "764304.4645",
+      "remaining_attainable_gap_eed": "764304.4645",
+      "qualified_novel_pairs_required_at_assumed_mean_weight": 1273841,
+      "source_inventory": [
+        {
+          "joint_qualified_novel_fraction": "0.01",
+          "candidate_host_years_required": 127384078
+        },
+        {
+          "joint_qualified_novel_fraction": "0.05",
+          "candidate_host_years_required": 25476816
+        },
+        {
+          "joint_qualified_novel_fraction": "0.10",
+          "candidate_host_years_required": 12738408
+        },
+        {
+          "joint_qualified_novel_fraction": "0.25",
+          "candidate_host_years_required": 5095364
+        },
+        {
+          "joint_qualified_novel_fraction": "0.50",
+          "candidate_host_years_required": 2547682
+        }
+      ],
+      "contributing_hosts": [
+        {
+          "mean_new_years": "1",
+          "contributing_hosts_required": 1273841
+        },
+        {
+          "mean_new_years": "2",
+          "contributing_hosts_required": 636921
+        },
+        {
+          "mean_new_years": "3",
+          "contributing_hosts_required": 424614
+        },
+        {
+          "mean_new_years": "6",
+          "contributing_hosts_required": 212307
+        }
+      ],
+      "request_scenarios": [
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.01",
+          "days": "884.6116487268518518518518519",
+          "requests_required": 76430447
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.01",
+          "days": "221.1529121817129629629629630",
+          "requests_required": 76430447
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.01",
+          "days": "88.46116487268518518518518519",
+          "requests_required": 76430447
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.05",
+          "days": "176.9223297453703703703703704",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.05",
+          "days": "44.23058243634259259259259259",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.05",
+          "days": "17.69223297453703703703703704",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.10",
+          "days": "88.46116487268518518518518519",
+          "requests_required": 7643045
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.10",
+          "days": "22.11529121817129629629629630",
+          "requests_required": 7643045
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.10",
+          "days": "8.846116487268518518518518519",
+          "requests_required": 7643045
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.30",
+          "days": "29.48705495756172839506172840",
+          "requests_required": 2547682
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.30",
+          "days": "7.371763739390432098765432099",
+          "requests_required": 2547682
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.30",
+          "days": "2.948705495756172839506172840",
+          "requests_required": 2547682
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.60",
+          "days": "14.74352747878086419753086420",
+          "requests_required": 1273841
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.60",
+          "days": "3.685881869695216049382716049",
+          "requests_required": 1273841
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.60",
+          "days": "1.474352747878086419753086420",
+          "requests_required": 1273841
+        }
+      ],
+      "host_query_scenarios": [
+        {
+          "name": "sparse",
+          "contributing_host_fraction": "0.05",
+          "mean_novel_years_if_contributing": "2",
+          "mean_requests_per_attempted_host": "3",
+          "eed_per_attempted_host": "0.060",
+          "eed_per_all_request": "0.020",
+          "attempted_hosts_required": 12738408,
+          "requests_required": 38215224,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "442.3058243634259259259259259"
+            },
+            {
+              "rps": "4",
+              "days": "110.5764560908564814814814815"
+            },
+            {
+              "rps": "10",
+              "days": "44.23058243634259259259259259"
+            }
+          ]
+        },
+        {
+          "name": "middle",
+          "contributing_host_fraction": "0.15",
+          "mean_novel_years_if_contributing": "2.5",
+          "mean_requests_per_attempted_host": "2",
+          "eed_per_attempted_host": "0.2250",
+          "eed_per_all_request": "0.1125",
+          "attempted_hosts_required": 3396909,
+          "requests_required": 6793818,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "78.63214655349794238683127572"
+            },
+            {
+              "rps": "4",
+              "days": "19.65803663837448559670781893"
+            },
+            {
+              "rps": "10",
+              "days": "7.863214655349794238683127572"
+            }
+          ]
+        },
+        {
+          "name": "higher_yield",
+          "contributing_host_fraction": "0.30",
+          "mean_novel_years_if_contributing": "3",
+          "mean_requests_per_attempted_host": "1.5",
+          "eed_per_attempted_host": "0.540",
+          "eed_per_all_request": "0.36",
+          "attempted_hosts_required": 1415379,
+          "requests_required": 2123068,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "24.57254579796810699588477366"
+            },
+            {
+              "rps": "4",
+              "days": "6.143136449492026748971193416"
+            },
+            {
+              "rps": "10",
+              "days": "2.457254579796810699588477366"
+            }
+          ]
+        }
+      ],
+      "bulk_scenarios": [
+        {
+          "name": "low_target_coverage",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.1",
+          "global_unique_pairs_per_valid_target_row": "0.1",
+          "joint_qualified_novel_fraction": "0.1",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "1224872.824725",
+          "scenario_novel_qualified_eed": "73492.36948350",
+          "fraction_of_remaining_gate": "0.09615588145435986786650518120",
+          "scenario_inventory_reaches_remaining_gate": false
+        },
+        {
+          "name": "near_gate",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.5",
+          "global_unique_pairs_per_valid_target_row": "0.2",
+          "joint_qualified_novel_fraction": "0.1",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "12248728.247250",
+          "scenario_novel_qualified_eed": "734923.69483500",
+          "fraction_of_remaining_gate": "0.9615588145435986786650518120",
+          "scenario_inventory_reaches_remaining_gate": false
+        },
+        {
+          "name": "higher_residual",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.5",
+          "global_unique_pairs_per_valid_target_row": "0.2",
+          "joint_qualified_novel_fraction": "0.25",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "12248728.247250",
+          "scenario_novel_qualified_eed": "1837309.237087500",
+          "fraction_of_remaining_gate": "2.403897036358996696662629530",
+          "scenario_inventory_reaches_remaining_gate": true
+        }
+      ],
+      "worker_scaling": [
+        {
+          "workers": 1,
+          "offered_average_rps": "0.8",
+          "ideal_staggered_upper_bound_rps": "0.8",
+          "ideal_staggered_lower_bound_days": "110.5764560908564814814814815",
+          "synchronized_downtime_average_rps": "0.8",
+          "synchronized_downtime_conditional_days": "110.5764560908564814814814815",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 3,
+          "offered_average_rps": "2.4",
+          "ideal_staggered_upper_bound_rps": "2.4",
+          "ideal_staggered_lower_bound_days": "36.85881869695216049382716049",
+          "synchronized_downtime_average_rps": "2.4",
+          "synchronized_downtime_conditional_days": "36.85881869695216049382716049",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 6,
+          "offered_average_rps": "4.8",
+          "ideal_staggered_upper_bound_rps": "4",
+          "ideal_staggered_lower_bound_days": "22.11529121817129629629629630",
+          "synchronized_downtime_average_rps": "3.2",
+          "synchronized_downtime_conditional_days": "27.64411402271412037037037037",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 12,
+          "offered_average_rps": "9.6",
+          "ideal_staggered_upper_bound_rps": "4",
+          "ideal_staggered_lower_bound_days": "22.11529121817129629629629630",
+          "synchronized_downtime_average_rps": "3.2",
+          "synchronized_downtime_conditional_days": "27.64411402271412037037037037",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        }
+      ],
+      "review_effort": [
+        {
+          "review_fraction": "0.001",
+          "pairs_to_review": 1274,
+          "hours": "10.61666666666666666666666667"
+        },
+        {
+          "review_fraction": "0.01",
+          "pairs_to_review": 12739,
+          "hours": "106.1583333333333333333333333"
+        },
+        {
+          "review_fraction": "1",
+          "pairs_to_review": 1273841,
+          "hours": "10615.34166666666666666666667"
+        }
+      ],
+      "horizon_requirements": [
+        {
+          "days": "7",
+          "required_eed_per_day": "109186.3520714285714285714286",
+          "required_eed_per_second": "1.263730926752645502645502646"
+        },
+        {
+          "days": "14",
+          "required_eed_per_day": "54593.17603571428571428571429",
+          "required_eed_per_second": "0.6318654633763227513227513228"
+        },
+        {
+          "days": "30",
+          "required_eed_per_day": "25476.81548333333333333333333",
+          "required_eed_per_second": "0.2948705495756172839506172840"
+        }
+      ]
+    },
+    {
+      "target_percent": "2",
+      "exact_threshold_eed": "1528608.928892",
+      "minimum_four_decimal_eed": "1528608.9289",
+      "remaining_attainable_gap_eed": "1528608.9289",
+      "qualified_novel_pairs_required_at_assumed_mean_weight": 2547682,
+      "source_inventory": [
+        {
+          "joint_qualified_novel_fraction": "0.01",
+          "candidate_host_years_required": 254768155
+        },
+        {
+          "joint_qualified_novel_fraction": "0.05",
+          "candidate_host_years_required": 50953631
+        },
+        {
+          "joint_qualified_novel_fraction": "0.10",
+          "candidate_host_years_required": 25476816
+        },
+        {
+          "joint_qualified_novel_fraction": "0.25",
+          "candidate_host_years_required": 10190727
+        },
+        {
+          "joint_qualified_novel_fraction": "0.50",
+          "candidate_host_years_required": 5095364
+        }
+      ],
+      "contributing_hosts": [
+        {
+          "mean_new_years": "1",
+          "contributing_hosts_required": 2547682
+        },
+        {
+          "mean_new_years": "2",
+          "contributing_hosts_required": 1273841
+        },
+        {
+          "mean_new_years": "3",
+          "contributing_hosts_required": 849228
+        },
+        {
+          "mean_new_years": "6",
+          "contributing_hosts_required": 424614
+        }
+      ],
+      "request_scenarios": [
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.01",
+          "days": "1769.223297337962962962962963",
+          "requests_required": 152860893
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.01",
+          "days": "442.3058243344907407407407407",
+          "requests_required": 152860893
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.01",
+          "days": "176.9223297337962962962962963",
+          "requests_required": 152860893
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.05",
+          "days": "353.8446594675925925925925926",
+          "requests_required": 30572179
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.05",
+          "days": "88.46116486689814814814814815",
+          "requests_required": 30572179
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.05",
+          "days": "35.38446594675925925925925926",
+          "requests_required": 30572179
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.10",
+          "days": "176.9223297337962962962962963",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.10",
+          "days": "44.23058243344907407407407407",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.10",
+          "days": "17.69223297337962962962962963",
+          "requests_required": 15286090
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.30",
+          "days": "58.97410991126543209876543210",
+          "requests_required": 5095364
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.30",
+          "days": "14.74352747781635802469135802",
+          "requests_required": 5095364
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.30",
+          "days": "5.897410991126543209876543210",
+          "requests_required": 5095364
+        },
+        {
+          "effective_requests_per_second": "1",
+          "eed_per_all_request": "0.60",
+          "days": "29.48705495563271604938271605",
+          "requests_required": 2547682
+        },
+        {
+          "effective_requests_per_second": "4",
+          "eed_per_all_request": "0.60",
+          "days": "7.371763738908179012345679012",
+          "requests_required": 2547682
+        },
+        {
+          "effective_requests_per_second": "10",
+          "eed_per_all_request": "0.60",
+          "days": "2.948705495563271604938271605",
+          "requests_required": 2547682
+        }
+      ],
+      "host_query_scenarios": [
+        {
+          "name": "sparse",
+          "contributing_host_fraction": "0.05",
+          "mean_novel_years_if_contributing": "2",
+          "mean_requests_per_attempted_host": "3",
+          "eed_per_attempted_host": "0.060",
+          "eed_per_all_request": "0.020",
+          "attempted_hosts_required": 25476816,
+          "requests_required": 76430447,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "884.6116486689814814814814815"
+            },
+            {
+              "rps": "4",
+              "days": "221.1529121672453703703703704"
+            },
+            {
+              "rps": "10",
+              "days": "88.46116486689814814814814815"
+            }
+          ]
+        },
+        {
+          "name": "middle",
+          "contributing_host_fraction": "0.15",
+          "mean_novel_years_if_contributing": "2.5",
+          "mean_requests_per_attempted_host": "2",
+          "eed_per_attempted_host": "0.2250",
+          "eed_per_all_request": "0.1125",
+          "attempted_hosts_required": 6793818,
+          "requests_required": 13587635,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "157.2642930967078189300411523"
+            },
+            {
+              "rps": "4",
+              "days": "39.31607327417695473251028807"
+            },
+            {
+              "rps": "10",
+              "days": "15.72642930967078189300411523"
+            }
+          ]
+        },
+        {
+          "name": "higher_yield",
+          "contributing_host_fraction": "0.30",
+          "mean_novel_years_if_contributing": "3",
+          "mean_requests_per_attempted_host": "1.5",
+          "eed_per_attempted_host": "0.540",
+          "eed_per_all_request": "0.36",
+          "attempted_hosts_required": 2830758,
+          "requests_required": 4246136,
+          "days_at_each_effective_rate": [
+            {
+              "rps": "1",
+              "days": "49.14509159272119341563786008"
+            },
+            {
+              "rps": "4",
+              "days": "12.28627289818029835390946502"
+            },
+            {
+              "rps": "10",
+              "days": "4.914509159272119341563786008"
+            }
+          ]
+        }
+      ],
+      "bulk_scenarios": [
+        {
+          "name": "low_target_coverage",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.1",
+          "global_unique_pairs_per_valid_target_row": "0.1",
+          "joint_qualified_novel_fraction": "0.1",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "1224872.824725",
+          "scenario_novel_qualified_eed": "73492.36948350",
+          "fraction_of_remaining_gate": "0.04807794073032514261404822283",
+          "scenario_inventory_reaches_remaining_gate": false
+        },
+        {
+          "name": "near_gate",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.5",
+          "global_unique_pairs_per_valid_target_row": "0.2",
+          "joint_qualified_novel_fraction": "0.1",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "12248728.247250",
+          "scenario_novel_qualified_eed": "734923.69483500",
+          "fraction_of_remaining_gate": "0.4807794073032514261404822283",
+          "scenario_inventory_reaches_remaining_gate": false
+        },
+        {
+          "name": "higher_residual",
+          "mean_identity_bytes_per_row": "400",
+          "valid_target_row_fraction": "0.5",
+          "global_unique_pairs_per_valid_target_row": "0.2",
+          "joint_qualified_novel_fraction": "0.25",
+          "scenario_raw_rows": "122487282.4725",
+          "scenario_distinct_target_candidate_pairs": "12248728.247250",
+          "scenario_novel_qualified_eed": "1837309.237087500",
+          "fraction_of_remaining_gate": "1.201948518258128565351205571",
+          "scenario_inventory_reaches_remaining_gate": true
+        }
+      ],
+      "worker_scaling": [
+        {
+          "workers": 1,
+          "offered_average_rps": "0.8",
+          "ideal_staggered_upper_bound_rps": "0.8",
+          "ideal_staggered_lower_bound_days": "221.1529121672453703703703704",
+          "synchronized_downtime_average_rps": "0.8",
+          "synchronized_downtime_conditional_days": "221.1529121672453703703703704",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 3,
+          "offered_average_rps": "2.4",
+          "ideal_staggered_upper_bound_rps": "2.4",
+          "ideal_staggered_lower_bound_days": "73.71763738908179012345679012",
+          "synchronized_downtime_average_rps": "2.4",
+          "synchronized_downtime_conditional_days": "73.71763738908179012345679012",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 6,
+          "offered_average_rps": "4.8",
+          "ideal_staggered_upper_bound_rps": "4",
+          "ideal_staggered_lower_bound_days": "44.23058243344907407407407407",
+          "synchronized_downtime_average_rps": "3.2",
+          "synchronized_downtime_conditional_days": "55.28822804181134259259259259",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        },
+        {
+          "workers": 12,
+          "offered_average_rps": "9.6",
+          "ideal_staggered_upper_bound_rps": "4",
+          "ideal_staggered_lower_bound_days": "44.23058243344907407407407407",
+          "synchronized_downtime_average_rps": "3.2",
+          "synchronized_downtime_conditional_days": "55.28822804181134259259259259",
+          "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+        }
+      ],
+      "review_effort": [
+        {
+          "review_fraction": "0.001",
+          "pairs_to_review": 2548,
+          "hours": "21.23333333333333333333333333"
+        },
+        {
+          "review_fraction": "0.01",
+          "pairs_to_review": 25477,
+          "hours": "212.3083333333333333333333333"
+        },
+        {
+          "review_fraction": "1",
+          "pairs_to_review": 2547682,
+          "hours": "21230.68333333333333333333333"
+        }
+      ],
+      "horizon_requirements": [
+        {
+          "days": "7",
+          "required_eed_per_day": "218372.7041285714285714285714",
+          "required_eed_per_second": "2.527461853339947089947089947"
+        },
+        {
+          "days": "14",
+          "required_eed_per_day": "109186.3520642857142857142857",
+          "required_eed_per_second": "1.263730926669973544973544974"
+        },
+        {
+          "days": "30",
+          "required_eed_per_day": "50953.63096333333333333333333",
+          "required_eed_per_second": "0.5897410991126543209876543210"
+        }
+      ]
+    }
+  ],
+  "ideal_identity_transfer_minutes": [
+    {
+      "mbps": "10",
+      "source_minutes": "653.26550652",
+      "baseline_minutes": "38.71794116"
+    },
+    {
+      "mbps": "100",
+      "source_minutes": "65.326550652",
+      "baseline_minutes": "3.871794116"
+    },
+    {
+      "mbps": "1000",
+      "source_minutes": "6.5326550652",
+      "baseline_minutes": "0.3871794116"
+    }
+  ],
+  "index_task_logical_mib": "64",
+  "source_index_task_count": 731,
+  "list_price_examples": [
+    {
+      "regional_workers": 3,
+      "probe_monthly_usd": "35",
+      "processing_monthly_usd": "89"
+    },
+    {
+      "regional_workers": 6,
+      "probe_monthly_usd": "53",
+      "processing_monthly_usd": "161"
+    }
+  ],
+  "price_snapshot": {
+    "currency": "USD",
+    "checked_date": "2026-11-24",
+    "vendor": "DigitalOcean",
+    "purpose": "One public list-price example, not a procurement decision or measured capacity guarantee",
+    "control_2gib_1vcpu_monthly": "12",
+    "probe_worker_1gib_1vcpu_monthly": "6",
+    "regional_worker_4gib_2vcpu_monthly": "24",
+    "shared_object_storage_base_monthly": "5",
+    "worker_counts": [
+      3,
+      6
+    ],
+    "droplet_source": "https://www.digitalocean.com/pricing/droplets",
+    "storage_source": "https://www.digitalocean.com/pricing/spaces-object-storage",
+    "exclusions": [
+      "tax",
+      "backups",
+      "extra disks",
+      "storage above included allowance",
+      "transfer above included allowance",
+      "managed database",
+      "control-plane high availability",
+      "human review",
+      "licensed data"
+    ]
+  },
+  "config_sha256": "d3f1d1aa7f90a41b16212e74db01b856936c2b0d806eacb0aad8b3b0fb321133",
+  "estimator_sha256": "e61f5698652e38510ef5fe12c04e160c8664250e0e72cf4a7bbeb64bcd0b77f3"
+}

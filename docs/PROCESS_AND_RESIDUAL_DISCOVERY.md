@@ -1,6 +1,6 @@
 # 全过程与剩余发现：从成熟系统到 Creeperman
 
-设计日期：2026-11-24（UTC+8）。本文件补充并约束[方案设计](SOLUTION_DESIGN.md)中的执行路线，优先规定对象、状态、操作和决策，再选择实现。竞赛事实依据[问题定义](PROBLEM_DEFINITION.md)、[规则核查](SOURCES_AND_AUDIT.md)和[当前基线审计](BASELINE_AUDIT.md)。外部方法的事实依据列于文末；数学关系、迁移方式和调度建议是本项目的设计判断。
+设计日期：2026-11-24（UTC+8）。本文件补充并约束[方案设计](SOLUTION_DESIGN.md)中的执行路线，优先规定对象、状态、操作和决策，再选择实现。竞赛事实依据[问题定义](PROBLEM_DEFINITION.md)、[规则核查](SOURCES_AND_AUDIT.md)和[当前基线审计](BASELINE_AUDIT.md)。外部方法的事实依据列于文末；数学关系、迁移方式和调度建议是本项目的设计判断。后续[门槛估算与全球分布执行](CAPACITY_AND_GLOBAL_EXECUTION.md)在这些对象与状态上补充容量模型、全球任务分配和提交协议。
 
 ## 1. 任务应怎样表述
 

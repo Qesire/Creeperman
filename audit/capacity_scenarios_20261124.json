@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-11-24",
+  "status": "Planning scenarios, not measured source yields or deployed system throughput",
+  "baseline": {
+    "id": "merge261121-3",
+    "eed": "76430446.4446",
+    "core_years": [1996, 1997, 1998, 1999, 2000, 2001],
+    "hostname_year_records": 140073629,
+    "annual_text_bytes": 2903845587,
+    "source": "docs/BASELINE_AUDIT.md and docs/SOLUTION_DESIGN.md"
+  },
+  "observed_source": {
+    "id": "arquivo_ia_cdxj_20261124",
+    "identity_object_bytes": 48994912989,
+    "whole_source_scanned": false,
+    "source": "audit/source_probe_20261124.json"
+  },
+  "assumptions": {
+    "target_percentages": ["1", "2"],
+    "achieved_qualified_novel_eed": "0",
+    "mean_weight_of_qualified_novel_pairs": "0.6",
+    "joint_qualified_novel_fractions": ["0.01", "0.05", "0.10", "0.25", "0.50"],
+    "mean_novel_years_per_contributing_host": ["1", "2", "3", "6"],
+    "effective_all_request_rates_per_second": ["1", "4", "10"],
+    "marginal_eed_per_all_request": ["0.01", "0.05", "0.10", "0.30", "0.60"],
+    "horizon_days": ["7", "14", "30"],
+    "host_query_scenarios": [
+      {"name": "sparse", "contributing_host_fraction": "0.05", "mean_novel_years_if_contributing": "2", "mean_requests_per_attempted_host": "3"},
+      {"name": "middle", "contributing_host_fraction": "0.15", "mean_novel_years_if_contributing": "2.5", "mean_requests_per_attempted_host": "2"},
+      {"name": "higher_yield", "contributing_host_fraction": "0.30", "mean_novel_years_if_contributing": "3", "mean_requests_per_attempted_host": "1.5"}
+    ],
+    "bulk_scenarios": [
+      {"name": "low_target_coverage", "mean_identity_bytes_per_row": "400", "valid_target_row_fraction": "0.1", "global_unique_pairs_per_valid_target_row": "0.1", "joint_qualified_novel_fraction": "0.1"},
+      {"name": "near_gate", "mean_identity_bytes_per_row": "400", "valid_target_row_fraction": "0.5", "global_unique_pairs_per_valid_target_row": "0.2", "joint_qualified_novel_fraction": "0.1"},
+      {"name": "higher_residual", "mean_identity_bytes_per_row": "400", "valid_target_row_fraction": "0.5", "global_unique_pairs_per_valid_target_row": "0.2", "joint_qualified_novel_fraction": "0.25"}
+    ],
+    "worker_scaling": {
+      "homogeneous_workers": [1, 3, 6, 12],
+      "active_requests_per_worker_second": "1",
+      "duty_fraction": "0.8",
+      "project_provider_rate_budget": "4",
+      "eed_per_all_request": "0.1",
+      "scope": "Single provider, fully reachable, homogeneous workers, constant conditional yield and no other bottleneck. min(mean offered, budget) is a rate upper bound, attainable only with sufficient staggering/budget utilization; matching days are a lower bound. Synchronized downtime is shown separately. Project budget is a scenario, not provider permission."
+    },
+    "ideal_wire_megabits_per_second": ["10", "100", "1000"],
+    "hypothetical_transfer_encoding": "identity; no compression benefit, protocol overhead, retries or server throttling included",
+    "manual_review_fractions": ["0.001", "0.01", "1"],
+    "seconds_per_manually_reviewed_pair": "30",
+    "index_task_logical_mib": "64"
+  },
+  "price_snapshot": {
+    "currency": "USD",
+    "checked_date": "2026-11-24",
+    "vendor": "DigitalOcean",
+    "purpose": "One public list-price example, not a procurement decision or measured capacity guarantee",
+    "control_2gib_1vcpu_monthly": "12",
+    "probe_worker_1gib_1vcpu_monthly": "6",
+    "regional_worker_4gib_2vcpu_monthly": "24",
+    "shared_object_storage_base_monthly": "5",
+    "worker_counts": [3, 6],
+    "droplet_source": "https://www.digitalocean.com/pricing/droplets",
+    "storage_source": "https://www.digitalocean.com/pricing/spaces-object-storage",
+    "exclusions": ["tax", "backups", "extra disks", "storage above included allowance", "transfer above included allowance", "managed database", "control-plane high availability", "human review", "licensed data"]
+  }
+}

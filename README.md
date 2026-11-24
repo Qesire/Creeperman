@@ -8,6 +8,7 @@
 
 | 文档 | 内容 |
 |---|---|
+| [门槛估算与全球分布执行](docs/CAPACITY_AND_GLOBAL_EXECUTION.md) | 来源容量、请求/计算预算、开源机制、全球任务协议、费用与判别实验 |
 | [全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md) | 对象、状态、完整流程、成熟方法和大基线下的发现策略 |
 | [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、最小实现、首轮实验与推进依据 |
 | [成熟方案与来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md) | 批量索引、早期恢复、业界实践、实际访问与代码复用 |
@@ -38,3 +39,5 @@
 2026-11-24 新增来源与方案设计：以批量历史索引的基线外证据供给为主线，定向补证为辅线；复用旧 Creeper 和成熟归档组件。首轮验证重点是来源剩余容量、exact hostname-year 身份与年份语义、全局去重后的边际 EED。实际探针范围与未完成事项见[来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md)。
 
 同日完成全过程重构：用来源/资料待办和候选/缺年验证待办组织两个循环，统一证据、全局差集和收益反馈。补充 Heritrix、IIPC 路由实践、MementoMap、RSM 等机制；明确已计入记录不能被无条件从资料展开路径中删除。新的流程定义见[全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md)。
+
+进一步完成[门槛估算与全球执行设计](docs/CAPACITY_AND_GLOBAL_EXECUTION.md)：用同一计分口径连接去重候选容量、每请求增量、完成时间与全局来源预算；比较 Nutch、BUbiNG、StormCrawler、PostgreSQL/PGMQ 与区域消息联邦。提出一个逻辑控制面＋多地执行器，分别管理任务租约、请求许可与全局结果。新增[离线估算器](audit/estimate_capacity.py)、[情景配置](audit/capacity_scenarios_20261124.json)和[计算输出](audit/capacity_estimates_20261124.json)。公开价格与假设计算已经核对；跨地区节点与真实来源产率尚未实测。
