@@ -10,6 +10,7 @@ from .core import canonical, sha, audit_binding, jsonl
 from .inventory import census
 from .jobs import discovery_job, verification_jobs
 from .store import Store
+from .sources import FORMATS, records
 
 
 def main(argv=None):
@@ -25,15 +26,20 @@ def main(argv=None):
     m.add_argument("--input",type=Path,required=True)
     m.add_argument("--source-id",required=True)
     m.add_argument("--origin-family",required=True)
-    m.add_argument("--format",choices=["hosts","urls","observations","cdxj"],required=True)
+    m.add_argument("--format",choices=FORMATS,required=True)
     m.add_argument("--role",choices=["discovery","existing_pool"],default="discovery")
     m.add_argument("--allow-source",action="store_true",required=True)
+    x=s.add_parser("extract")
+    x.add_argument("--input",type=Path,required=True)
+    x.add_argument("--format",choices=FORMATS,required=True)
+    x.add_argument("--out",type=Path,required=True)
+    x.add_argument("--allow-source",action="store_true",required=True)
     d=s.add_parser("discovery-job")
     d.add_argument("--store",required=True)
     d.add_argument("--input",type=Path,required=True)
     d.add_argument("--source-id",required=True)
     d.add_argument("--origin-family",required=True)
-    d.add_argument("--format",choices=["hosts","urls","observations","cdxj"],required=True)
+    d.add_argument("--format",choices=FORMATS,required=True)
     d.add_argument("--allow-source",action="store_true",required=True)
     b=s.add_parser("plan")
     b.add_argument("--store",required=True)
@@ -82,6 +88,15 @@ def main(argv=None):
         print(canonical({"source_id":a.source_id,"origin_family":a.origin_family,
             "role":a.role,"format":a.format,"path":str(a.input.resolve()),
             "sha256":sha(a.input),"allowed_by_competition":True}).decode(),end="")
+    elif a.cmd=="extract":
+        a.out.parent.mkdir(parents=True,exist_ok=True)
+        rejected=a.out.with_suffix(a.out.suffix+".rejected.jsonl")
+        if a.out.exists() or rejected.exists(): raise FileExistsError(a.out)
+        with a.out.open("xb") as f,rejected.open("xb") as e:
+            for n,item,error in records(a.input,a.format):
+                if item is None: e.write(canonical({"record":n,"reason":error}))
+                else: f.write(canonical(item))
+        print(json.dumps({"input_sha256":sha(a.input),"output_sha256":sha(a.out),"format":a.format}))
     elif a.cmd=="discovery-job":
         print(canonical(discovery_job(Store(a.store),a.input,source_id=a.source_id,
             origin_family=a.origin_family,fmt=a.format)).decode(),end="")

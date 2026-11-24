@@ -5,6 +5,8 @@ import gzip
 import json
 from pathlib import Path
 from .core import host, url_host, timestamp_year
+from .extract import FORMATS as EXTRA_FORMATS, extract
+FORMATS = ('hosts','urls','observations','cdxj') + EXTRA_FORMATS
 
 
 def records(path: Path, fmt: str):
@@ -13,7 +15,11 @@ def records(path: Path, fmt: str):
     A date is a hint, not a website qualification. Original input plus line
     location is retained. CDXJ uses original URL, never the SURT key.
     """
-    if fmt not in {"hosts", "urls", "observations", "cdxj"}:
+    if fmt in EXTRA_FORMATS:
+        for n,(item,error) in enumerate(extract(path,fmt),1):
+            yield n,item,error
+        return
+    if fmt not in FORMATS:
         raise ValueError(f"unsupported format {fmt}")
     opener = gzip.open if path.suffix == ".gz" else open
     with opener(path, "rt", encoding="utf-8", errors="strict") as f:
@@ -43,7 +49,11 @@ def records(path: Path, fmt: str):
                     if year is not None and (type(year) is not int or not 1 <= year <= 9999):
                         raise ValueError("invalid observation year")
                     kind = str(row.get("kind", "observation"))
-                yield n, {"hostname": h, "original_url": url, "observed_year": year,
+                details = {k: row[k] for k in ("locator","source_original_url","anchor_text",
+                    "context","context_before","reference_role","date_semantics","raw_reference",
+                    "message_id","date_header","position","tag","attribute","rewrite")
+                    if k in row} if fmt=="observations" else {}
+                yield n, {**details,"hostname": h, "original_url": url, "observed_year": year,
                           "kind": kind}, None
             except (ValueError, KeyError, TypeError, AttributeError) as exc:
                 yield n, None, str(exc)

@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from .core import ALL, RULE, VERSION, canonical, host, jsonl, sha, url_host
 from .store import Store
+from .sources import FORMATS
 
 JOB_SCHEMA = "creeperman-job-v1"
 RESULT_SCHEMA = "creeperman-result-v1"
@@ -21,7 +22,7 @@ def discovery_job(store: Store, path: Path, *, source_id: str, origin_family: st
         raise ValueError("source and historical observation family required")
     if "commoncrawl" in origin_family.lower().replace(" ", "").replace("-", ""):
         raise ValueError("Common Crawl candidate corpus excluded")
-    if fmt not in {"hosts","urls","observations","cdxj"}:
+    if fmt not in FORMATS:
         raise ValueError("unsupported source format")
     job = {"schema":JOB_SCHEMA, "operation":"discover", "version":VERSION,
         "policy":RULE, "source_id":source_id,"origin_family":origin_family,
