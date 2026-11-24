@@ -22,62 +22,66 @@ def execute(store, envelope, role, collector=None, progress=lambda *args:None):
         inp=store.materialize(job["input"],p/("input.gz" if job.get("gzip") else "input"))
         progress("input_verified")
         out=p/"results.jsonl"
-        with out.open("wb") as f:
-            if role=="compute":
-                for n,item,error in records(inp,job["format"]):
-                    stats["records"]+=1
-                    if item is None:
-                        result={"record_line":n,"state":"rejected","reason":error}
-                        stats["rejected"]+=1
-                    else:
-                        result={**item,"record_line":n,"state":"candidate",
-                                "source_id":job["source_id"],"origin_family":job["origin_family"]}
-                        stats["candidates"]+=1
-                    f.write(canonical(result))
-                    if stats["records"]%1000==0:
-                        progress("records",stats["records"])
-            else:
-                from .cdx import interpret,query_params
-                if collector is None:
-                    raise ValueError("verification requires an explicitly enabled collector")
-                # Validate entire finite plan before any remote request.
-                targets=[]
-                seen=set()
-                for n,row in jsonl(inp):
-                    if len(targets)>=job["max_requests"]:
-                        raise ValueError("targets exceed declared budget")
-                    params=query_params(row)
-                    h=row["hostname"]
-                    if h in seen:
-                        raise ValueError("duplicate host in batch")
-                    seen.add(h)
-                    targets.append((n,row,params))
-                stop=False
-                for n,row,params in targets:
-                    progress("target",n)
-                    previous=collector.start_target(envelope["job_id"],n)
-                    if previous and "hostname" in previous:
-                        result=previous
-                        stats["reused_checkpoint_records"]+=1
-                    else:
-                        if previous:
-                            meta,body=previous,None
-                        elif stop:
-                            meta,body={"state":"deferred_cooldown","requests":0},None
+        if job["operation"]=="online":
+            from .online import run_online
+            stats.update(run_online(store,envelope,job,inp,out,collector,progress))
+        else:
+            with out.open("wb") as f:
+                if role=="compute":
+                    for n,item,error in records(inp,job["format"]):
+                        stats["records"]+=1
+                        if item is None:
+                            result={"record_line":n,"state":"rejected","reason":error}
+                            stats["rejected"]+=1
                         else:
-                            meta,body=collector.request(params)
-                        result=interpret(row,body,meta)
-                        result.update(record_line=n,query=params,provider="ia-cdx")
-                        if body is not None:
-                            raw=p/"response"
-                            raw.write_bytes(body)
-                            result["response_ref"]=store.put(raw)
-                        collector.finish_target(envelope["job_id"],n,result)
-                        stats["requests"]+=meta["requests"]
-                    f.write(canonical(result))
-                    stats[result["state"]]+=1
-                    if result["state"] in {"provider_cooldown","rate_limited"} or result.get("http_status")==503:
-                        stop=True
+                            result={**item,"record_line":n,"state":"candidate",
+                                    "source_id":job["source_id"],"origin_family":job["origin_family"]}
+                            stats["candidates"]+=1
+                        f.write(canonical(result))
+                        if stats["records"]%1000==0:
+                            progress("records",stats["records"])
+                else:
+                    from .cdx import interpret,query_params
+                    if collector is None:
+                        raise ValueError("verification requires an explicitly enabled collector")
+                    # Validate entire finite plan before any remote request.
+                    targets=[]
+                    seen=set()
+                    for n,row in jsonl(inp):
+                        if len(targets)>=job["max_requests"]:
+                            raise ValueError("targets exceed declared budget")
+                        params=query_params(row)
+                        h=row["hostname"]
+                        if h in seen:
+                            raise ValueError("duplicate host in batch")
+                        seen.add(h)
+                        targets.append((n,row,params))
+                    stop=False
+                    for n,row,params in targets:
+                        progress("target",n)
+                        previous=collector.start_target(envelope["job_id"],n)
+                        if previous and "hostname" in previous:
+                            result=previous
+                            stats["reused_checkpoint_records"]+=1
+                        else:
+                            if previous:
+                                meta,body=previous,None
+                            elif stop:
+                                meta,body={"state":"deferred_cooldown","requests":0},None
+                            else:
+                                meta,body=collector.request(params)
+                            result=interpret(row,body,meta)
+                            result.update(record_line=n,query=params,provider="ia-cdx")
+                            if body is not None:
+                                raw=p/"response"
+                                raw.write_bytes(body)
+                                result["response_ref"]=store.put(raw)
+                            collector.finish_target(envelope["job_id"],n,result)
+                            stats["requests"]+=meta["requests"]
+                        f.write(canonical(result))
+                        stats[result["state"]]+=1
+                        if result["state"] in {"provider_cooldown","rate_limited"} or result.get("http_status")==503:
+                            stop=True
         progress("output_ready")
         output=store.put(out)
         # Content-addressed output and manifest: a lost completion response

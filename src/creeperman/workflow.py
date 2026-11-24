@@ -8,7 +8,7 @@ from temporalio.common import RetryPolicy
 class BatchWorkflow:
     @workflow.run
     async def run(self, envelope: dict) -> dict:
-        online=envelope["operation"]=="verify"
+        online=envelope["operation"] in ("verify","online")
         # External HTTP activities are not automatically repeated after an
         # ambiguous failure. Offline activities may safely regenerate outputs.
         return await workflow.execute_activity(

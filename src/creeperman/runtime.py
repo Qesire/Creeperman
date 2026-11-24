@@ -34,17 +34,17 @@ async def connect(address,namespace):
 async def serve(args):
     from pathlib import Path
     from .store import Store
-    from .cdx import Collector
+    from .online import ArchiveCollector
     collector=None
-    if args.role=="ia":
+    if args.role in ("ia","arquivo"):
         if not args.allow_online or not args.user_agent:
             raise ValueError("IA worker requires --allow-online and --user-agent")
-        collector=Collector(Path(args.state),args.interval,args.user_agent)
+        collector=ArchiveCollector(Path(args.state or f"work/{args.role}-collector.sqlite"),args.interval,args.user_agent,args.role)
     elif args.allow_online:
         raise ValueError("compute worker never performs external verification")
     client=await connect(args.address,args.namespace)
     act=Activities(Store(args.store),args.role,collector)
-    concurrency=1 if args.role=="ia" else args.concurrency
+    concurrency=1 if args.role in ("ia","arquivo") else args.concurrency
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         worker=Worker(client,task_queue=args.queue,workflows=[BatchWorkflow],
                       activities=[act.run],activity_executor=pool,

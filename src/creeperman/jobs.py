@@ -94,6 +94,14 @@ def validate_job(job, role):
     if job.get("schema")!=JOB_SCHEMA or job.get("version")!=VERSION or job.get("policy")!=RULE:
         raise ValueError("unsupported job version")
     op=job.get("operation")
+    if op=="online":
+        from .online import ACTIONS
+        if role!=job.get("provider") or job.get("action") not in ACTIONS.get(role,set()):
+            raise ValueError("online job routed to wrong provider")
+        Store.check_ref(job["input"])
+        if not job.get("authority") or not 1<=job.get("max_requests",0)<=50:
+            raise ValueError("invalid online authority/budget")
+        return
     if (role,op) not in {("compute","discover"),("ia","verify")}:
         raise ValueError("job routed to wrong worker role")
     Store.check_ref(job["input"])
