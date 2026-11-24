@@ -83,6 +83,17 @@ def main(argv=None):
     rv.add_argument("--db",type=Path,required=True)
     rv.add_argument("--authority",required=True)
     rv.add_argument("--out",type=Path,required=True)
+    sig=s.add_parser("signatures")
+    sig.add_argument("--observations",type=Path,required=True)
+    sig.add_argument("--out",type=Path,required=True)
+    sig.add_argument("--limit",type=int,required=True)
+    sig.add_argument("--words",type=int,default=5)
+    st=s.add_parser("settle")
+    for k in ("baseline","audit","model","decisions","out"):
+        st.add_argument("--"+k,type=Path,required=True)
+    st.add_argument("--rule-version",required=True)
+    st.add_argument("--db",type=Path)
+    st.add_argument("--store")
     l=s.add_parser("run-local")
     l.add_argument("--store",required=True)
     l.add_argument("--job",type=Path,required=True)
@@ -165,13 +176,22 @@ def main(argv=None):
         from .catalog import export_observations
         a.out.parent.mkdir(parents=True,exist_ok=True)
         export_observations(Store(a.store),a.db,a.out)
+    elif a.cmd=="signatures":
+        from .semantic import signatures
+        a.out.parent.mkdir(parents=True,exist_ok=True)
+        signatures(a.observations,a.out,a.limit,a.words)
+    elif a.cmd=="settle":
+        from .settle import settle
+        print(json.dumps(settle(a.baseline,a.audit,a.model,a.decisions,a.out,
+              rule_version=a.rule_version,db_path=a.db,store=Store(a.store) if a.store else None),
+              ensure_ascii=False,indent=2))
     elif a.cmd=="review-export":
         from .catalog import review_export
         a.out.parent.mkdir(parents=True,exist_ok=True)
         review_export(a.db,a.out,a.authority)
     elif a.cmd=="collect":
         from .catalog import ingest
-        refs=(r.get("manifest_ref",r) for _,r in jsonl(a.refs))
+        refs=(r.get("manifest_ref",r) for _,r in jsonl(a.refs) if r.get("manifest_ref") or ("sha256" in r and "bytes" in r))
         print(json.dumps(ingest(Store(a.store),a.db,refs),ensure_ascii=False,indent=2))
     elif a.cmd=="get":
         a.out.parent.mkdir(parents=True,exist_ok=True)

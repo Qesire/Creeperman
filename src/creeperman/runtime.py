@@ -66,3 +66,40 @@ async def get_result(args):
     client=await connect(args.address,args.namespace)
     return {"workflow_id":args.workflow_id,
             "manifest_ref":await client.get_workflow_handle(args.workflow_id).result()}
+
+
+async def dispatch(args):
+    """Finite inflight workflows, durable JSONL receipts, attach on rerun."""
+    import json
+    from temporalio.exceptions import WorkflowAlreadyStartedError
+    from .core import jsonl, canonical
+    if not 1<=args.max_inflight<=16 or not 1<=args.limit_jobs<=10000:
+        raise ValueError("invalid dispatch window")
+    client=await connect(args.address,args.namespace)
+    args.out.parent.mkdir(parents=True,exist_ok=True)
+    async def one(e):
+        op=e["operation"]
+        if op in ("verify","online") and not args.allow_online:
+            raise ValueError("online dispatch requires explicit opt-in")
+        role="compute" if op=="discover" else "ia" if op=="verify" else e["provider"]
+        queue={"compute":args.compute_queue,"ia":args.ia_queue,"arquivo":args.arquivo_queue}[role]
+        wid="creeperman-v1-"+e["job_id"]
+        try:
+            handle=await client.start_workflow(BatchWorkflow.run,e,id=wid,task_queue=queue,
+                        id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE)
+        except WorkflowAlreadyStartedError:
+            handle=client.get_workflow_handle(wid)
+        try:
+            return {"workflow_id":wid,"manifest_ref":await handle.result()}
+        except Exception as exc:
+            return {"workflow_id":wid,"state":"workflow_failed_or_unresolved","error_type":type(exc).__name__}
+    # Preflight finite cohort before starting any workflow.
+    from itertools import islice
+    cohort=[e for _,e in islice(jsonl(args.plans),args.limit_jobs)]
+    if not args.allow_online and any(e["operation"]!="discover" for e in cohort):
+        raise ValueError("online dispatch requires explicit opt-in")
+    if args.out.exists():raise FileExistsError(args.out)
+    with args.out.open("xb") as f:
+        for i in range(0,len(cohort),args.max_inflight):
+            for r in await asyncio.gather(*(one(e) for e in cohort[i:i+args.max_inflight])):
+                f.write(canonical(r));f.flush()

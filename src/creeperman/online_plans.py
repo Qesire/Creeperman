@@ -50,6 +50,7 @@ def routed_jobs(store,census_dir,limit,batch_size,round_id,offset=0,include_unda
     if report["schema"]!="census-v1" or sha(p)!=report["output_sha256"]["opportunities.jsonl"]:
         raise ValueError("invalid census snapshot")
     authority=report["authority"]["id"]
+    snapshot=sha_value(report)
     batches=defaultdict(list);accepted=skipped=0
     for dated in ((True,False) if include_undated else (True,)):
         for _,r in jsonl(p):
@@ -64,7 +65,7 @@ def routed_jobs(store,census_dir,limit,batch_size,round_id,offset=0,include_unda
             original=next((s["sample_url"] for s in r["sources"] if s.get("sample_url") and url_host(s["sample_url"])==h),None)
             primary=route(h)[0]
             target={"hostname":h,"target_mask":mask,"original_url":original,
-                    "census_sha256":sha_value(report),
+                    "census_sha256":snapshot,
                     "manual_route_hint":"PANDORA" if h.endswith(".au") else "Webarchiv.cz" if h.endswith(".cz") else None}
             batches[primary].append(target);accepted+=1
             if len(batches[primary])==batch_size:

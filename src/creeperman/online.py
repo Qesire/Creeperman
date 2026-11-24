@@ -49,6 +49,7 @@ def source_pointer(value):
 def request_spec(provider,action,row):
     if action not in ACTIONS.get(provider,set()): raise ValueError("unsupported provider/action")
     if action=="lookup":
+        if row.get("original_url"):clean_url(row["original_url"])
         params=query_params(row)
         if row.get("same_host"):
             params["url"]="http://"+row["hostname"]+"/"
@@ -177,7 +178,9 @@ def replay_result(provider,row,body,meta):
         r["state"]="possibly_truncated";return r
     headers=meta.get("headers",{})
     try:
-        actual=parsedate_to_datetime(headers["memento-datetime"]).astimezone(timezone.utc).strftime("%Y%m%d%H%M%S")
+        dt=parsedate_to_datetime(headers["memento-datetime"])
+        if dt.tzinfo is None:raise ValueError("missing timestamp timezone")
+        actual=dt.astimezone(timezone.utc).strftime("%Y%m%d%H%M%S")
         actual_url=original_link(headers.get("link"))
         if actual!=ts or not actual_url or url_host(actual_url)!=h:
             raise ValueError("replay identity/time differs")
@@ -254,7 +257,8 @@ def run_online(store,envelope,job,inp,out,collector,progress):
     from collections import Counter
     from .core import jsonl
     from tempfile import TemporaryDirectory
-    rows=[r for _,r in jsonl(inp)]
+    from itertools import islice
+    rows=[r for _,r in islice(jsonl(inp),51)]
     provider,action=job["provider"],job["action"]
     validate_rows(provider,action,rows)
     if len(rows)!=job["max_requests"] or collector is None or collector.provider!=provider:
