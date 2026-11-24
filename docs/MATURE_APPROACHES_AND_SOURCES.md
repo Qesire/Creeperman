@@ -4,10 +4,12 @@
 
 关于这些系统如何连接成完整流程，以及大规模已有覆盖如何改变搜索，先看[全过程与剩余发现](PROCESS_AND_RESIDUAL_DISCOVERY.md)。本文保留逐来源的资料依据、访问探针和适配细节。
 
+后续[研究复核后的方案](EVIDENCE_LED_REDESIGN.md)将 WebBase 2001 提升为独立来源重点，并核到具体归档读取和 Temporal 实现。本文件中的探针是此前已完成观察；本轮只读资料与源码，当前推进顺序先完成来源契约。
+
 ## 调查带来的设计结论
 
 1. **批量索引与按需回查已有成熟路径。** Arquivo 的官方 bulk 流程、ArchiveSpark 和 Webrecorder 可以直接提供方法和组件。
-2. **当前最重要的测量是来源与最新 baseline 的差集。** 抓取版本数、URL 数、不同 hostname 数和 hostname-year 数是不同量；所有来源经过全局去重后再测边际 EED。
+2. **来源契约是有意义差集的前提。** 先核定原始身份、逐年语义、生成过程与交付范围，再将合格年度键与最新 baseline 求差；抓取版本数、URL 数和 hostname-year 数不能互换。
 3. **身份压缩会改变赛题对象。** SURT、Domain Graph、Archive95 展示层都可能合并 www/裸域，竞赛应读取原始 URL。
 4. **早期恢复的门槛已被实践明确。** Archive95 的原文件—URL 映射和日期重建经验，比泛化的“找旧网页”更接近可执行工作。
 5. **独立 HTTP 观测值得调查。** Netcraft 的月度观测与 DNS 调查具有不同证据含义；是否能取得早期行级记录，仍需具体数据契约。
@@ -28,7 +30,7 @@
 
 PWA9609 描述中的历史分量为：Roteiro 1996 年约 75,000 文档版本；IA 1996—2000 年约 5,047,000 文档版本；IA 2000—2008 年约 118,842,000 文档版本。这些是该研究语料的资源统计，并非当前完整索引的唯一主机数。
 
-### 本轮实际读取
+### 此前来源探测轮的实际读取
 
 对公开索引执行小范围只读请求，确认：
 
@@ -41,7 +43,7 @@ PWA9609 描述中的历史分量为：Roteiro 1996 年约 75,000 文档版本；
 
 ### 对方案的作用
 
-Roteiro 适合完整小来源闭环。IA 索引适合先检查跨区间年代与重复结构，再按可取得容量决定全量扫描。IA 原始抓取与其他机构的 IA 派生收藏存在祖源关系，应计算实际差集。
+已有 Roteiro 观察可帮助明确格式和小来源容量。IA 路线先核查 collection、时间与记录语义，再决定后续确定的处理范围；其原始抓取与其他机构的 IA 派生收藏存在祖源关系，不把不同提供者当独立库存。PWA9609 链接投影和原 URL 映射的具体机制见[复核文档第 3.3 节](EVIDENCE_LED_REDESIGN.md)。
 
 ## M2. British Library / UKWA / JISC：按年提供 CDX 的成熟模式
 
@@ -60,7 +62,7 @@ Roteiro 适合完整小来源闭环。IA 索引适合先检查跨区间年代与
 
 Host Link Graph 的行包含 crawl year、源 host、目标 host 和链接频数。源 host 的抓取与目标 host 的被链接事实应保留角色；图中年代绑定方式不能被默认为所有目标网页都被同年抓取。
 
-### 本轮可取得程度
+### 此前探测与当前文档的取得程度
 
 元数据和 schema 可读。旧下载 URL 在本轮 HTTP 访问返回 200，但内容是约 3.3 KB 的应用壳，未获得年度 CDX 文件；另一旧入口未取得有效数据。这是本次访问结果，不等于证明所有镜像均失效。恢复查询/阅览服务也不自动证明开放数据下载已恢复。
 
@@ -156,7 +158,7 @@ W3C 目录适合验证历史正文边界：页面有后加导航及多种协议/
 - DOI：[10.13020/D62684](https://doi.org/10.13020/D62684)
 - [数据 handle](https://hdl.handle.net/11299/200445)
 
-官方元数据确认覆盖 1996—2000，包含 source、destination、frequency。底层入口本轮未取得有效数据。下一步要拿到 README、文件清单、一个年度样本和节点映射；原始 hostname 可恢复性及逐年生成语义将决定它如何使用。
+官方元数据确认覆盖 1996—2000，包含 source、destination、frequency。目前只确认目录级身份；先补 README、文件清单、节点规范化和原始采集关系。尚不列为已可接入的独立原始网页库；WebBase 有更具体的图、映射和转换代码，应优先完成其来源链。
 
 ### IA / ODU / Filecoin 的纵向取样实践
 
@@ -180,6 +182,22 @@ W3C 目录适合验证历史正文边界：页面有后加导航及多种协议/
 | `scripts/run_arquivo_cdxj_catalog_probe.py`、`run_arquivo_cdxj_sample.py` | 目录确认 | 后续复核来源探针，减少重写 |
 
 可直接复用的部分集中在确定性数据处理。旧 5%/ZIP 规则更换为当前 1%/7z；解析层宽泛状态只作为初始观测，再经新证据策略。全局唯一键和多 witness 保留同时用于来源统计与最终导出，避免前端产率虚高。
+
+## M10. Stanford WebBase / LAW：独立的 2001 年图路线
+
+- [LAW webbase-2001](https://law.di.unimi.it/webdata/webbase-2001/)：2001 年 Stanford WebBase 抓取衍生图；118,142,155 URL 节点，提供图与 URL 映射。
+- [WebGraph 教程](https://law.di.unimi.it/tutorial.php)：URL 第 i 行与节点 i 对应；图和 URL 文件必须采用匹配版本；可用成熟 API 顺序访问邻接关系。
+- 作者仓库固定 `2ffd9d9a7144c7024974e92379a05978fb97a8b5` 的 [WebBase 转换工具](https://github.com/vigna/webgraph/tree/2ffd9d9a7144c7024974e92379a05978fb97a8b5/src/it/unimi/dsi/webgraph/webbase)：URL2 未删除 www/子域；Hasher 以规范化 URL 哈希归并、保留首次输入标签；Converter 由源记录后继链接生成出度。
+
+这条路线具有独立抓取祖源和具体交付物。正出度源节点可在版本、身份与 dated graph 规则成立时形成图证据；零出度节点保留候选。仍须补历史生产版本绑定和上游 hostname 处理，不能将现存代码直接当成 2001 文件的完整生成证明，也不能把节点数当新增 host-year。详情见[复核文档第 3.1 节](EVIDENCE_LED_REDESIGN.md)。
+
+## M11. 复用能力必须核到实际代码
+
+新增确认：pywb 的 ZipNum 二级定位与相邻索引块合并、BlockArcWarcRecordLoader 的局部归档读取、ResolvingLoader 的本次头/原 payload 分离，以及 ArchiveSpark DataSpecs 的两阶段加载。它们承担读取机制，竞赛资格由自身适配器判断。
+
+两处研究代码不应直接视为可用的竞赛模块：RSM 所链接仓库的 keyword_sample_profiler.py 仍为 TODO；NYPW hydratewarc.py 以 digest 缓存并补 mime/status 的做法不能替代本次捕获身份和状态核验。固定源码位置与复用界限见[复核文档第 4—5 节](EVIDENCE_LED_REDESIGN.md)。
+
+全球任务生命周期优先采用 Temporal；相比自建数据库租约协议，直接复用命名队列、活动心跳、超时与恢复。Activity 速率与 HTTP 配额分开，数据通过 manifest 引用传递。框架及替代方案的源码依据见[复核文档第 6 节](EVIDENCE_LED_REDESIGN.md)。
 
 ## 首轮决策所需的最小来源契约
 

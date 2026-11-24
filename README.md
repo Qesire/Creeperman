@@ -8,9 +8,10 @@
 
 | 文档 | 内容 |
 |---|---|
-| [门槛估算与全球分布执行](docs/CAPACITY_AND_GLOBAL_EXECUTION.md) | 来源容量、请求/计算预算、开源机制、全球任务协议、费用与判别实验 |
+| [研究复核后的方案](docs/EVIDENCE_LED_REDESIGN.md) | 当前入口：具体来源、生成代码、可信发现、高效验证与 Temporal 全球批次通信 |
+| [门槛估算与全球分布执行](docs/CAPACITY_AND_GLOBAL_EXECUTION.md) | 容量情景、请求/计算预算、成熟执行组件、数据放置与来源预算 |
 | [全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md) | 对象、状态、完整流程、成熟方法和大基线下的发现策略 |
-| [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、最小实现、首轮实验与推进依据 |
+| [方案设计](docs/SOLUTION_DESIGN.md) | 核心门槛、主辅路线、组件边界与研究先行的推进依据 |
 | [成熟方案与来源调查](docs/MATURE_APPROACHES_AND_SOURCES.md) | 批量索引、早期恢复、业界实践、实际访问与代码复用 |
 | [项目关键总结](docs/PROJECT_SUMMARY.md) | 任务目标、最新规则、计分、已有资源、主要风险与工作优先级 |
 | [问题定义](docs/PROBLEM_DEFINITION.md) | 研究对象、输入输出、集合与评分公式、证据状态、系统边界、验收条件 |
@@ -20,6 +21,7 @@
 
 ## 关键判断
 
+- 来源先核到原始采集、日期、身份、生成代码和交付范围。提供者不同、信息投影不同与基线外新增分别判断；资料仍无法回答的问题才进入判别性执行。
 - 已计入的 hostname-year 与已展开的资料分别记录：已知历史页面仍可能产生新外链、新检索入口或其他年份的证据。直接计分按基线求差，资料展开按来源版本和操作进度去重。
 - 核心统计单位是 **hostname-year**。同年去重，跨年分别举证；裸域和 `www.` 形式分别处理。
 - 年度主表要求目标年份、确切 hostname 的网站证据；DNS、注册、邮件或文本线索须保存在候选层。
@@ -40,4 +42,6 @@
 
 同日完成全过程重构：用来源/资料待办和候选/缺年验证待办组织两个循环，统一证据、全局差集和收益反馈。补充 Heritrix、IIPC 路由实践、MementoMap、RSM 等机制；明确已计入记录不能被无条件从资料展开路径中删除。新的流程定义见[全过程与剩余发现](docs/PROCESS_AND_RESIDUAL_DISCOVERY.md)。
 
-进一步完成[门槛估算与全球执行设计](docs/CAPACITY_AND_GLOBAL_EXECUTION.md)：用同一计分口径连接去重候选容量、每请求增量、完成时间与全局来源预算；比较 Nutch、BUbiNG、StormCrawler、PostgreSQL/PGMQ 与区域消息联邦。提出一个逻辑控制面＋多地执行器，分别管理任务租约、请求许可与全局结果。新增[离线估算器](audit/estimate_capacity.py)、[情景配置](audit/capacity_scenarios_20261124.json)和[计算输出](audit/capacity_estimates_20261124.json)。公开价格与假设计算已经核对；跨地区节点与真实来源产率尚未实测。
+进一步完成[门槛估算与全球执行设计](docs/CAPACITY_AND_GLOBAL_EXECUTION.md)和[离线估算器](audit/estimate_capacity.py)。其中产率与吞吐为情景参数，旧小型控制进程的标价组合不是当前 Temporal 部署预算；未测得真实来源新增率或全球吞吐。
+
+同日根据研究复核修订当前方案：新增 WebBase 2001 独立图路线及 URL2/Hasher/Converter 源码依据；区分 UKWA/Arquivo 的共同 IA 祖源与不同投影；核实 pywb、warcio、ArchiveSpark 的验证机制。全球编排首选 Temporal＋各地批次 worker＋manifest 引用，来源请求在主采集区统一管理。撤下原定 72 次探测和初版自建租约层；纠正 RSM 所链接关键词模块仍为 TODO 的实现状态。本轮仅阅读资料、源码并修改文档，没有新增测试、扫描或部署。
