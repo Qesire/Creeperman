@@ -25,16 +25,17 @@ def discovery_job(store: Store, path: Path, *, source_id: str, origin_family: st
         raise ValueError("unsupported source format")
     job = {"schema":JOB_SCHEMA, "operation":"discover", "version":VERSION,
         "policy":RULE, "source_id":source_id,"origin_family":origin_family,
+        "allowed_by_competition":True,
         "format":fmt,"gzip":path.suffix==".gz","input":store.put(path)}
     return {"job_id":job_id(job), "operation":"discover", "job_ref":store.put_json(job)}
 
 
 def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size: int,
-                      include_undated=False):
+                      include_undated=False, offset=0, round_id="initial"):
     """Admit a bounded cohort; one possible CDX request per exact host.
     Input is produced by the offline census; never expands a domain subtree.
     """
-    if not 1 <= batch_size <= 500 or limit < 1:
+    if not 1 <= batch_size <= 500 or limit < 1 or offset<0 or not isinstance(round_id,str) or not 1<=len(round_id)<=64:
         raise ValueError("positive limit and batch size 1..500 required")
     report = json.loads((census_dir/"report.json").read_text(encoding="utf-8"))
     if report["schema"] != "census-v1":
@@ -44,7 +45,7 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
         raise ValueError("census opportunity fingerprint mismatch")
     authority = report["authority"]["id"]
     snapshot = sha(census_dir/"report.json")
-    emitted, batch = 0, []
+    emitted, skipped, batch = 0, 0, []
     def publish(rows):
         with tempfile.TemporaryDirectory() as t:
             p=Path(t)/"targets.jsonl"
@@ -53,6 +54,7 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
                     f.write(canonical(row))
             job={"schema":JOB_SCHEMA,"operation":"verify","version":VERSION,
                  "policy":RULE,"provider":"ia-cdx","authority":authority,"census_snapshot":snapshot,
+                 "round_id":round_id,
                  "input":store.put(p),"max_requests":len(rows)}
             return {"job_id":job_id(job),"operation":"verify","job_ref":store.put_json(job)}
     # Two passes avoid giving undated clues precedence over dated ones.
@@ -61,6 +63,9 @@ def verification_jobs(store: Store, census_dir: Path, *, limit: int, batch_size:
             hinted = row["hinted_missing_mask"]
             mask = hinted if dated else row["missing_mask"]
             if bool(hinted) != dated or not mask:
+                continue
+            if skipped<offset:
+                skipped+=1
                 continue
             h=host(row["hostname"])
             if h != row["hostname"] or type(mask) is not int or mask & ~ALL or mask & (row["baseline_mask"] | row.get("local_qualified_mask",0)):
@@ -96,7 +101,7 @@ def validate_job(job, role):
             raise ValueError("invalid verification budget")
         if not job.get("authority"):
             raise ValueError("authority required")
-    elif not job.get("source_id") or not job.get("origin_family"):
+    elif not job.get("source_id") or not job.get("origin_family") or job.get("allowed_by_competition") is not True:
         raise ValueError("source identity required")
     elif "commoncrawl" in job["origin_family"].lower().replace(" ", "").replace("-", ""):
         raise ValueError("Common Crawl candidate corpus excluded")

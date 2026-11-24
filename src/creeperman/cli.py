@@ -6,7 +6,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from .core import canonical
+from .core import canonical, sha, audit_binding, jsonl
 from .inventory import census
 from .jobs import discovery_job, verification_jobs
 from .store import Store
@@ -18,6 +18,16 @@ def main(argv=None):
     c=s.add_parser("census")
     for flag in ("baseline","audit","model","sources","out"):
         c.add_argument("--"+flag,type=Path,required=True)
+    a0=s.add_parser("authority")
+    a0.add_argument("--audit",type=Path,required=True)
+    a0.add_argument("--model",type=Path,required=True)
+    m=s.add_parser("describe-source")
+    m.add_argument("--input",type=Path,required=True)
+    m.add_argument("--source-id",required=True)
+    m.add_argument("--origin-family",required=True)
+    m.add_argument("--format",choices=["hosts","urls","observations","cdxj"],required=True)
+    m.add_argument("--role",choices=["discovery","existing_pool"],default="discovery")
+    m.add_argument("--allow-source",action="store_true",required=True)
     d=s.add_parser("discovery-job")
     d.add_argument("--store",required=True)
     d.add_argument("--input",type=Path,required=True)
@@ -31,6 +41,8 @@ def main(argv=None):
     b.add_argument("--limit",type=int,required=True)
     b.add_argument("--batch-size",type=int,default=50)
     b.add_argument("--include-undated",action="store_true")
+    b.add_argument("--offset",type=int,default=0)
+    b.add_argument("--round-id",default="initial")
     l=s.add_parser("run-local")
     l.add_argument("--store",required=True)
     l.add_argument("--job",type=Path,required=True)
@@ -53,6 +65,10 @@ def main(argv=None):
     for x in (w,u,r):
         x.add_argument("--address",default="localhost:7233")
         x.add_argument("--namespace",default="default")
+    i=s.add_parser("collect")
+    i.add_argument("--store",required=True)
+    i.add_argument("--db",type=Path,required=True)
+    i.add_argument("--refs",type=Path,required=True)
     g=s.add_parser("get")
     g.add_argument("--store",required=True)
     g.add_argument("--ref",required=True,help="JSON object reference")
@@ -60,13 +76,24 @@ def main(argv=None):
     a=p.parse_args(argv)
     if a.cmd=="census":
         print(json.dumps(census(a.baseline,a.audit,a.model,a.sources,a.out),ensure_ascii=False,indent=2))
+    elif a.cmd=="authority":
+        print(canonical(audit_binding(a.audit,a.model)[0]).decode(),end="")
+    elif a.cmd=="describe-source":
+        print(canonical({"source_id":a.source_id,"origin_family":a.origin_family,
+            "role":a.role,"format":a.format,"path":str(a.input.resolve()),
+            "sha256":sha(a.input),"allowed_by_competition":True}).decode(),end="")
     elif a.cmd=="discovery-job":
         print(canonical(discovery_job(Store(a.store),a.input,source_id=a.source_id,
             origin_family=a.origin_family,fmt=a.format)).decode(),end="")
     elif a.cmd=="plan":
         for envelope in verification_jobs(Store(a.store),a.census,limit=a.limit,
-                    batch_size=a.batch_size,include_undated=a.include_undated):
+                    batch_size=a.batch_size,include_undated=a.include_undated,
+                    offset=a.offset,round_id=a.round_id):
             print(canonical(envelope).decode(),end="")
+    elif a.cmd=="collect":
+        from .catalog import ingest
+        refs=(r.get("manifest_ref",r) for _,r in jsonl(a.refs))
+        print(json.dumps(ingest(Store(a.store),a.db,refs),ensure_ascii=False,indent=2))
     elif a.cmd=="get":
         a.out.parent.mkdir(parents=True,exist_ok=True)
         Store(a.store).materialize(json.loads(a.ref),a.out)
