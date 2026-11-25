@@ -1,6 +1,6 @@
 # Creeperman — 本地 Agent 执行约定
 
-先读 docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
+先读 docs/ACQUISITION_PRIORITY_2026-11-25.md（最新可获得性与公开物件执行顺序）、docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
 
 ## 目标
 
