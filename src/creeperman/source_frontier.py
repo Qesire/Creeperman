@@ -85,7 +85,7 @@ def normalize_doi(value):
         if s.lower().startswith(prefix):
             s = unquote(s[len(prefix):])
             break
-    return s.lower() if len(s)<=512 and DOI.fullmatch(s) else None
+    return s.lower() if len(s)<=512 and DOI.fullmatch(s) and not any(x in (".","..") for x in s.split("/")) else None
 
 
 def spec(provider, action, key, page=1):
@@ -341,6 +341,7 @@ CREATE TABLE IF NOT EXISTS attempts(task_id TEXT PRIMARY KEY, started TEXT NOT N
  error TEXT, family TEXT NOT NULL, provider TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS cooldown(provider TEXT PRIMARY KEY, until_epoch REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, sha TEXT NOT NULL, source_url TEXT NOT NULL, format TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS proposals(parent TEXT NOT NULL, child TEXT NOT NULL, spec TEXT NOT NULL, family TEXT NOT NULL, depth INTEGER NOT NULL, priority INTEGER NOT NULL, relation TEXT NOT NULL, PRIMARY KEY(parent,child,relation));
 """
 
 
@@ -380,24 +381,39 @@ class Frontier:
         # all versioned claims, even when record IDs coincide.
         rid=digest([p,record["kind"],record["identity"]])
         body={**record,"provider":p,"resource_id":rid}
-        self.db.execute("INSERT OR IGNORE INTO resources VALUES(?,?,?)",(rid,canonical(body).decode(),record["rank"]))
+        self.db.execute("""INSERT INTO resources VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body,rank=excluded.rank WHERE excluded.rank>=resources.rank""",(rid,canonical(body).decode(),record["rank"]))
         self.db.execute("INSERT OR IGNORE INTO observations VALUES(?,?,?,?)",
                         (parent,rid,str(ordinal),canonical(body).decode()))
         self.db.execute("INSERT OR IGNORE INTO edges VALUES(?,?,?)",(parent,rid,record["kind"]))
     def import_document(self, path, fmt, source_url, family):
         if not safe_url(source_url):raise ValueError("explicit public original document URL required")
-        raw=Path(path).read_bytes()
+        path=Path(path)
+        if path.stat().st_size>MAX_BYTES:raise ValueError("document exceeds metadata cap; split locally")
+        return self.import_document_bytes(path.read_bytes(),fmt,source_url,family)
+    def import_document_bytes(self,raw,fmt,source_url,family):
+        if not safe_url(source_url) or not family:raise ValueError("public source URL and family required")
         if len(raw)>MAX_BYTES:raise ValueError("document exceeds metadata cap; split locally")
-        with self.db:
-            h=self.put_body(raw); doc=digest([h,source_url,fmt])
-            self.db.execute("INSERT OR IGNORE INTO documents VALUES(?,?,?,?)",(doc,h,source_url,fmt))
-            for i,l in enumerate(document_links(raw,fmt,source_url)):
-                r=resource("file_locator_hint" if FILE_RE.search(l["url"]) else "locator_hint",
-                    l["url"],url=l["url"],description=l["context"],**{"raw_url":l["raw_url"],"position":l["position"]})
-                self.observe(doc,"local_document",r,i)
-                for t in route_url(l["url"]):
-                    self.enqueue(t,family,0,20+r["rank"],doc,"document link at "+str(l["position"]))
+        # Caller may be within the scoped page crawl's transaction.
+        h=self.put_body(raw); doc=digest([h,source_url,fmt])
+        self.db.execute("INSERT OR IGNORE INTO documents VALUES(?,?,?,?)",(doc,h,source_url,fmt))
+        for i,l in enumerate(document_links(raw,fmt,source_url)):
+            r=resource("file_locator_hint" if FILE_RE.search(l["url"]) else "locator_hint",
+                l["url"],url=l["url"],description=l["context"],**{"raw_url":l["raw_url"],"position":l["position"]})
+            self.observe(doc,"local_document",r,i)
+            for t in route_url(l["url"]):
+                self.enqueue(t,family,0,20+r["rank"],doc,"document link at "+str(l["position"]))
         return doc
+    def propose(self,parent,t,family,depth,priority,reason):
+        cid=digest(t)
+        self.db.execute("INSERT OR IGNORE INTO proposals VALUES(?,?,?,?,?,?,?)",
+           (parent,cid,canonical(t).decode(),family,depth,priority,reason))
+        return cid
+    def admit(self,cid):
+        rows=self.db.execute("SELECT * FROM proposals WHERE child=? ORDER BY priority DESC,depth,parent",(cid,)).fetchall()
+        if not rows:raise ValueError("unknown proposal ID")
+        with self.db:
+            for r in rows:
+                self.enqueue(json.loads(r["spec"]),r["family"],r["depth"],r["priority"],r["parent"],r["relation"])
     def choose(self, providers, max_depth, excluded=()):
         ps=[p for p in providers if p not in excluded]
         if not ps:return None
@@ -426,8 +442,15 @@ class Frontier:
                 t=json.loads(row["spec"]);tid=row["id"];p=t["provider"];url=endpoint(t)
                 changed=self.db.execute("UPDATE tasks SET state='started' WHERE id=? AND state='queued'",(tid,)).rowcount
                 if not changed:continue
+                last=self.db.execute("SELECT max(started) FROM attempts WHERE provider=?",(p,)).fetchone()[0]
                 self.db.execute("INSERT INTO attempts(task_id,started,status,url,family,provider) VALUES(?,?,?,?,?,?)",
                     (tid,utc(),"started",url,row["family"],p))
+            # Enforce a persistent lower bound even when commands are restarted.
+            if last:
+                delay=interval-(time.time()-datetime.fromisoformat(last).timestamp())
+                if delay>0:sleeper(delay)
+                with self.db:
+                    self.db.execute("UPDATE attempts SET started=? WHERE task_id=?",(utc(),tid))
             used+=1
             status="transport_error"; code=None; headers={}; body=b""; err=None
             try:
@@ -439,6 +462,7 @@ class Frontier:
             with self.db:
                 h=self.put_body(body) if body else None
                 if status=="received":
+                    self.db.execute("SAVEPOINT parse_result")
                     try:
                         rs,cs,full=parsed(t,json.loads(body))
                         for i,r in enumerate(rs):self.observe(tid,p,r,i)
@@ -448,6 +472,7 @@ class Frontier:
                         for child,why,rank in sorted(cs,key=lambda c:(-c[2],digest(c[0]),c[1])):
                             cid=digest(child)
                             if cid==tid:continue
+                            self.propose(tid,child,row["family"],row["depth"]+1,20+rank,why)
                             existing=self.db.execute("SELECT 1 FROM tasks WHERE id=?",(cid,)).fetchone()
                             if existing or (cid not in seen and admitted<max_children):
                                 self.enqueue(child,row["family"],row["depth"]+1,20+rank,tid,why)
@@ -456,8 +481,11 @@ class Frontier:
                         if full and t["page"]<max_pages:
                             child=spec(t["provider"],"search",t["key"],t["page"]+1)
                             self.enqueue(child,row["family"],row["depth"],4,tid,"bounded next search page")
+                        self.db.execute("RELEASE parse_result")
                         status="parsed"
                     except (ValueError,KeyError,TypeError,AttributeError,UnicodeError) as exc:
+                        self.db.execute("ROLLBACK TO parse_result")
+                        self.db.execute("RELEASE parse_result")
                         status="invalid_response";err=type(exc).__name__
                 if code in (401,403,429,503):
                     blocked.add(p)
@@ -468,7 +496,8 @@ class Frontier:
                         except (ValueError,TypeError):
                             try:delay=max(delay,parsedate_to_datetime(v).timestamp()-time.time())
                             except (ValueError,TypeError,OverflowError):pass
-                    self.db.execute("INSERT INTO cooldown VALUES(?,?) ON CONFLICT(provider) DO UPDATE SET until_epoch=max(until_epoch,excluded.until_epoch)",(p,time.time()+delay))
+                    until=253402300799 if code in (401,403) else time.time()+delay
+                    self.db.execute("INSERT INTO cooldown VALUES(?,?) ON CONFLICT(provider) DO UPDATE SET until_epoch=max(until_epoch,excluded.until_epoch)",(p,until))
                 self.db.execute("UPDATE attempts SET ended=?,status=?,http_status=?,sha=?,headers=?,error=? WHERE task_id=?",
                     (utc(),status,code,h,canonical(headers).decode(),err,tid))
                 self.db.execute("UPDATE tasks SET state=? WHERE id=?",(status,tid))
@@ -480,6 +509,8 @@ class Frontier:
                 "attempts_by_provider":counts("SELECT provider,count(*) FROM attempts GROUP BY provider"),
                 "attempts_by_family":counts("SELECT family,count(*) FROM attempts GROUP BY family"),
                 "resource_kinds":counts("SELECT json_extract(body,'$.kind'),count(*) FROM resources GROUP BY 1"),
+                "unadmitted_proposals":self.db.execute("SELECT count(DISTINCT p.child) FROM proposals p LEFT JOIN tasks t ON t.id=p.child WHERE t.id IS NULL").fetchone()[0],
+                "provider_cooldowns":counts("SELECT provider,until_epoch FROM cooldown"),
                 "verified_new_eed":None}
     def export(self,out):
         out=Path(out);out.mkdir(parents=True,exist_ok=False)
@@ -490,7 +521,8 @@ class Frontier:
           "observations.jsonl":"SELECT parent,resource_id,locator,body FROM observations ORDER BY parent,locator",
           "resources.jsonl":"SELECT body FROM resources ORDER BY rank DESC,id",
           "file_review.jsonl":"SELECT body FROM resources WHERE json_extract(body,'$.kind') IN ('file_descriptor','file_locator_hint') ORDER BY rank DESC,id",
-          "documents.jsonl":"SELECT * FROM documents ORDER BY id"}
+          "documents.jsonl":"SELECT * FROM documents ORDER BY id",
+          "proposals.jsonl":"SELECT p.*,CASE WHEN t.id IS NULL THEN 0 ELSE 1 END AS admitted FROM proposals p LEFT JOIN tasks t ON t.id=p.child ORDER BY p.priority DESC,p.parent,p.child"}
         for name,q in queries.items():
             with (out/name).open("wb") as f:
                 for r in self.db.execute(q):
@@ -532,12 +564,17 @@ def main(argv=None):
     run.add_argument("--user-agent",required=True);run.add_argument("--allow-public-catalog",action="store_true",required=True)
     ex=sub.add_parser("export");ex.add_argument("--out",type=Path,required=True)
     raw=sub.add_parser("raw");raw.add_argument("--sha256",required=True);raw.add_argument("--out",type=Path,required=True)
+    admit=sub.add_parser("admit");admit.add_argument("--proposal-id",required=True)
     sub.add_parser("status")
     a=p.parse_args(argv)
     f=Frontier(a.db)
     try:
         if a.cmd=="init":f.init(json.loads(a.seeds.read_text(encoding="utf-8")));result=f.summary()
-        elif a.cmd=="import-document":result={"document_id":f.import_document(a.input,a.format,a.source_url,a.family),**f.summary()}
+        elif a.cmd=="import-document":
+            with f.db:
+                doc=f.import_document(a.input,a.format,a.source_url,a.family)
+            result={"document_id":doc,**f.summary()}
+        elif a.cmd=="admit":f.admit(a.proposal_id);result=f.summary()
         elif a.cmd=="run":
             # Reuse the existing OS-level lock used by the archive worker;
             # run with the worker extra installed.
