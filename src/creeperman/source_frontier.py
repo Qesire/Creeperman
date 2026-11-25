@@ -282,9 +282,11 @@ def parsed(task, data):
 class LinkParser(HTMLParser):
     def __init__(self, base):
         super().__init__(convert_charrefs=True)
-        self.base=base;self.links=[];self.active=None
+        self.base=base;self.links=[];self.active=None;self.base_href=None
     def handle_starttag(self,tag,attrs):
         d=dict(attrs)
+        if tag=="base" and self.base_href is None and d.get("href"):
+            self.base_href=d["href"]
         if tag=="a" and d.get("href"):
             self.active=[d["href"],"",self.getpos()]
             self.links.append(self.active)
@@ -305,6 +307,8 @@ def document_links(raw, fmt, source_url):
     if fmt=="html":
         parser=LinkParser(source_url);parser.feed(text);parser.close()
         result=parser.links
+        if parser.base_href:
+            source_url=safe_url(urljoin(source_url,parser.base_href)) or source_url
     elif fmt=="tei":
         root=ET.fromstring(raw)
         for i,e in enumerate(root.iter()):
@@ -538,11 +542,11 @@ class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 
-def http_fetcher(user_agent):
+def http_fetcher(user_agent,accept="application/json"):
     if not user_agent or any(c in user_agent for c in "\r\n"):raise ValueError("descriptive User-Agent required")
     opener=build_opener(NoRedirect)
     def fetch(url):
-        r=Request(url,headers={"User-Agent":user_agent,"Accept":"application/json","Accept-Encoding":"identity"})
+        r=Request(url,headers={"User-Agent":user_agent,"Accept":accept,"Accept-Encoding":"identity"})
         try:response=opener.open(r,timeout=30)
         except HTTPError as exc:response=exc
         with response:
@@ -577,8 +581,8 @@ def main(argv=None):
         elif a.cmd=="admit":f.admit(a.proposal_id);result=f.summary()
         elif a.cmd=="run":
             # Reuse the existing OS-level lock used by the archive worker;
-            # run with the worker extra installed.
-            from .runtime import collector_lock
+            # no Temporal dependency is needed for this collector.
+            from .locking import collector_lock
             with collector_lock(a.db):
                 result=f.run(providers=a.providers,limit=a.max_requests,interval=a.interval,
                     max_depth=a.max_depth,max_pages=a.max_pages,max_children=a.max_children,fetch=http_fetcher(a.user_agent))

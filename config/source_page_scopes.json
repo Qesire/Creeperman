@@ -1,0 +1,52 @@
+{
+  "schema": "source-page-scopes-v1",
+  "purpose": "Review actual public-use terms before enabling. Scope is a finding aid boundary, not evidence.",
+  "scopes": [
+    {
+      "host": "scout.wisc.edu",
+      "paths": [
+        "/report",
+        "/Reports/ScoutReport"
+      ],
+      "family": "internet-scout-publisher",
+      "seeds": [
+        "https://scout.wisc.edu/report",
+        "https://scout.wisc.edu/Reports/ScoutReport"
+      ]
+    },
+    {
+      "host": "netpreserve.org",
+      "paths": [
+        "/web-archiving/tools-and-software",
+        "/projects/collections-access",
+        "/about-us/working-groups/research-working-group"
+      ],
+      "family": "iipc-finding-aids",
+      "seeds": [
+        "https://netpreserve.org/web-archiving/tools-and-software/",
+        "https://netpreserve.org/projects/collections-access/",
+        "https://netpreserve.org/about-us/working-groups/research-working-group/"
+      ]
+    },
+    {
+      "host": "arquivo.pt",
+      "paths": [
+        "/datasets/cdxj"
+      ],
+      "family": "arquivo-collection-manifests",
+      "seeds": [
+        "https://arquivo.pt/datasets/cdxj/"
+      ]
+    },
+    {
+      "host": "archive95.net",
+      "paths": [
+        "/sources"
+      ],
+      "family": "historical-media-inventory",
+      "seeds": [
+        "https://archive95.net/sources/"
+      ]
+    }
+  ]
+}
