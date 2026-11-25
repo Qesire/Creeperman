@@ -1,0 +1,239 @@
+{
+  "schema": "creeperman-public-census-v1",
+  "report_date": "2026-11-25",
+  "run_binding": {
+    "repository_revision": "1f4d3c0b6d339a6497b004ff8ab59f65df90bd81",
+    "baseline_id": "merge261121-3",
+    "authority_id": "ed4fe675daf7a3e3ff09d548a2bd0556bb4856e1df657d064d3936fb3122dbaa",
+    "normalization": "exact-host-v1",
+    "model_sha256": "480d86bc287ef2c2bc80be62ecffe6eecba950dddf07bb9d3f15e6c2c268eb07",
+    "rule_sha256": "579f36ac222c435dfdc51230f085aa43f11135c92ddcf8a2311e7fca26884aa4"
+  },
+  "totals": {
+    "baseline_hostname_years": 140073629,
+    "distinct_baseline_hostnames_across_years": 103302338,
+    "baseline_eed": "76430446.4446",
+    "candidate_hostnames_union": 89165782,
+    "candidate_hostnames_absent_from_all_baseline_years": 88003341,
+    "candidate_hostnames_absent_from_existing_pool_and_all_baseline_years": 98808
+  },
+  "local_settlement": {
+    "new_hostname_years": 18,
+    "new_eed": "11.5612",
+    "exact_one_percent_eed": "764304.464446",
+    "minimum_eed_at_four_decimal_precision": "764304.4645",
+    "meets_one_percent": false,
+    "competition_submission": "not_submitted",
+    "candidate_archive_lookup_requests": 0
+  },
+  "capacity": {
+    "all_missing_before_review": {
+      "hostname_years": 532229513,
+      "conditional_eed_ceiling": "266735784.5626"
+    },
+    "with_year_hint_before_review": {
+      "hostname_years": 17379306,
+      "conditional_eed_ceiling": "8845347.9002"
+    },
+    "with_year_hint_before_review_by_evidence_family": {
+      "dns_only": {
+        "hostname_years": 17379074,
+        "conditional_eed_ceiling": "8845163.0542"
+      },
+      "web_material_only": {
+        "hostname_years": 232,
+        "conditional_eed_ceiling": "184.8460"
+      },
+      "both": {
+        "hostname_years": 0,
+        "conditional_eed_ceiling": "0.0000"
+      }
+    },
+    "with_year_hint_after_settlement": {
+      "hostname_years": 17379288,
+      "conditional_eed_ceiling": "8845336.3390"
+    }
+  },
+  "core_years": [
+    {
+      "year": 1996,
+      "baseline_hostname_years": 2177036,
+      "baseline_eed": "1275766.3897",
+      "before_review_all_missing_hostname_years": 88792856,
+      "before_review_year_hinted_missing_hostname_years": 7282513,
+      "before_review_year_hinted_eed_ceiling": "3896018.0363",
+      "locally_verified_new_hostname_years": 6,
+      "locally_verified_new_eed": "5.8302"
+    },
+    {
+      "year": 1997,
+      "baseline_hostname_years": 4334350,
+      "baseline_eed": "2413185.7930",
+      "before_review_all_missing_hostname_years": 88554664,
+      "before_review_year_hinted_missing_hostname_years": 10096781,
+      "before_review_year_hinted_eed_ceiling": "4949324.1329",
+      "locally_verified_new_hostname_years": 0,
+      "locally_verified_new_eed": "0.0000"
+    },
+    {
+      "year": 1998,
+      "baseline_hostname_years": 6923660,
+      "baseline_eed": "3757679.2753",
+      "before_review_all_missing_hostname_years": 88844309,
+      "before_review_year_hinted_missing_hostname_years": 0,
+      "before_review_year_hinted_eed_ceiling": "0.0000",
+      "locally_verified_new_hostname_years": 0,
+      "locally_verified_new_eed": "0.0000"
+    },
+    {
+      "year": 1999,
+      "baseline_hostname_years": 19798995,
+      "baseline_eed": "10791235.9508",
+      "before_review_all_missing_hostname_years": 88772498,
+      "before_review_year_hinted_missing_hostname_years": 12,
+      "before_review_year_hinted_eed_ceiling": "5.7310",
+      "locally_verified_new_hostname_years": 12,
+      "locally_verified_new_eed": "5.7310"
+    },
+    {
+      "year": 2000,
+      "baseline_hostname_years": 30149983,
+      "baseline_eed": "16366431.5282",
+      "before_review_all_missing_hostname_years": 88777240,
+      "before_review_year_hinted_missing_hostname_years": 0,
+      "before_review_year_hinted_eed_ceiling": "0.0000",
+      "locally_verified_new_hostname_years": 0,
+      "locally_verified_new_eed": "0.0000"
+    },
+    {
+      "year": 2001,
+      "baseline_hostname_years": 76689605,
+      "baseline_eed": "41826147.5076",
+      "before_review_all_missing_hostname_years": 88487946,
+      "before_review_year_hinted_missing_hostname_years": 0,
+      "before_review_year_hinted_eed_ceiling": "0.0000",
+      "locally_verified_new_hostname_years": 0,
+      "locally_verified_new_eed": "0.0000"
+    }
+  ],
+  "per_source_nonadditive": {
+    "existing_candidate_pool": {
+      "input_records": 88352636,
+      "rejected_records": 203,
+      "unique_hostnames": 88352433,
+      "before_review_year_hinted_missing_hostname_years": 0,
+      "before_review_year_hinted_eed_ceiling": "0.0000"
+    },
+    "isc_dns_1996": {
+      "input_records": 7574715,
+      "rejected_records": 0,
+      "unique_hostnames": 7574715,
+      "before_review_year_hinted_missing_hostname_years": 7282297,
+      "before_review_year_hinted_eed_ceiling": "3895839.8930"
+    },
+    "isc_dns_1997": {
+      "input_records": 10551477,
+      "rejected_records": 0,
+      "unique_hostnames": 10551477,
+      "before_review_year_hinted_missing_hostname_years": 10096777,
+      "before_review_year_hinted_eed_ceiling": "4949323.1612"
+    },
+    "isc_dns_mixed_1995_1997": {
+      "input_records": 461629,
+      "rejected_records": 308911,
+      "unique_hostnames": 152718,
+      "before_review_year_hinted_missing_hostname_years": 0,
+      "before_review_year_hinted_eed_ceiling": "0.0000"
+    },
+    "cmu_webkb": {
+      "input_records": 13605,
+      "rejected_records": 0,
+      "unique_hostnames": 9984,
+      "before_review_year_hinted_missing_hostname_years": 220,
+      "before_review_year_hinted_eed_ceiling": "179.1150"
+    },
+    "linux_gazette_www_mirrors_1999_10_29": {
+      "input_records": 173,
+      "rejected_records": 0,
+      "unique_hostnames": 168,
+      "before_review_year_hinted_missing_hostname_years": 12,
+      "before_review_year_hinted_eed_ceiling": "5.7310"
+    }
+  },
+  "auxiliary_inventory": {
+    "scope": "File sizes and physical row counts only. Excluded from the core-year settlement.",
+    "bytes": 17462112910,
+    "physical_rows": 745480684,
+    "years": [
+      {
+        "year": 2002,
+        "physical_rows": 28488245,
+        "bytes": 726670969
+      },
+      {
+        "year": 2003,
+        "physical_rows": 29906332,
+        "bytes": 763471928
+      },
+      {
+        "year": 2004,
+        "physical_rows": 58022341,
+        "bytes": 1829757971
+      },
+      {
+        "year": 2005,
+        "physical_rows": 52362002,
+        "bytes": 1343691153
+      },
+      {
+        "year": 2006,
+        "physical_rows": 38793331,
+        "bytes": 1209317704
+      },
+      {
+        "year": 2007,
+        "physical_rows": 32089718,
+        "bytes": 753940306
+      },
+      {
+        "year": 2008,
+        "physical_rows": 39754381,
+        "bytes": 873820811
+      },
+      {
+        "year": 2009,
+        "physical_rows": 55877769,
+        "bytes": 1258445278
+      },
+      {
+        "year": 2010,
+        "physical_rows": 58799372,
+        "bytes": 1244931161
+      },
+      {
+        "year": 2011,
+        "physical_rows": 41543249,
+        "bytes": 841061050
+      },
+      {
+        "year": 2012,
+        "physical_rows": 193180870,
+        "bytes": 4192899093
+      },
+      {
+        "year": 2013,
+        "physical_rows": 116663074,
+        "bytes": 2424105486
+      }
+    ]
+  },
+  "definitions": {
+    "hostname_year": "One exact hostname in one calendar year. A hostname present in two years counts twice.",
+    "before_review": "Compared with the frozen annual baseline before this local settlement.",
+    "all_missing": "Each candidate hostname paired with each core year in which the baseline lacks that hostname. These pairs may lack any year-specific observation.",
+    "year_hinted": "Each missing pair with at least one observation suggesting that year, deduplicated across sources.",
+    "conditional_eed_ceiling": "Sum of fixed TLD English weights assuming all counted missing pairs qualify. A DNS observation or a linked target alone requires independent website evidence for the same hostname and year.",
+    "per_source_nonadditive": "Each source is deduplicated independently; a hostname or hostname-year may appear in multiple sources.",
+    "local_settlement": "Only same-year evidence reviewed against the frozen baseline; EED independently recomputed using the supplied calculator."
+  }
+}
