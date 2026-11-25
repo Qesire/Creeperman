@@ -1,17 +1,17 @@
 # Creeperman — 本地 Agent 执行约定
 
-先读 docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
+先读 docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
 
 ## 目标
 
-使用真实竞赛任务包，取得可复核的基线外 1996—2001 exact hostname-year。当前参考基线 EED 为 76,430,446.4446，参考最低新增为 764,304.4645；以实际适用基线和官方规则为准。首要任务是联合 census；没有真实容量报告不先扩容或盲目发请求。
+使用真实竞赛任务包，取得可复核的基线外 1996—2001 exact hostname-year。当前参考基线 EED 为 76,430,446.4446，参考最低新增为 764,304.4645；以实际适用基线和官方规则为准。已完成首轮 census 与全量辅助年交集。首要任务是恢复来源原件、逐项出处和独立历史证据供应，不重跑旧池/交集，不先扩容。
 
 ## 执行顺序
 
 1. 定位本地任务包、规则、模型、候选池与既有资产；不要求用户重述已提供路径。校验任务包身份，确认 IA/WebBase/同源图谱实际处理范围，不重复下载已经消费的材料。
 2. 安装依赖并执行测试；用 scripts/preflight_local.py 绑定本地资料和来源。原始资料用 extract 或 discovery-job 解析；多源统一 census。
 3. 根据实际候选规模、带年代线索的剩余容量、来源独占贡献及费用决定下一步。将真实 report.json 和来源处理清单保存在本地 work。
-4. 按授权的有限窗口启动 IA/Arquivo Worker，按 route-plan、dispatch、collect、followup、review-export 顺序执行。可用多个计算节点；每个 provider 只有一个活跃采集预算所有者。不得以轮换出口、凭证或 User-Agent 规避限流。
+4. 先核对最新策略中逐目标年与完整分页的 §XIII 要求、已中止试验的状态及实际授权。v0.2 的有界查询不等于完备年度验证；未经新窗口确认不自动续跑。需要在线补证时按适用范围使用 Worker 和现有结果账本。可用多个计算节点；每个 provider 只有一个活跃采集预算所有者。不得以轮换出口、凭证或 User-Agent 规避限流。
 5. 保存实际捕获时间、original、证据与来源定位。通过 export-observations、signatures 回流新线索，只有明确未消费材料才进入新任务。人工/Agent 依据实际规则裁决，settle 仅核算已明确裁决记录。
 6. 依据现行任务书制作正式提交包；核心与扩展年份分开，独立核对官方 EED、资格和证据。未经用户明确要求不正式提交竞赛。
 
