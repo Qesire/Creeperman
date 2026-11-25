@@ -1,0 +1,88 @@
+{
+  "schema": "source-frontier-v1",
+  "purpose": "Public metadata discovery; query terms describe materials, not local candidate hostnames. Publication year is not a target-year filter.",
+  "seeds": [
+    {
+      "family": "original-crawl",
+      "provider": "crossref",
+      "key": "web crawl collection 1996 1997 1998 1999 2000 2001 URL corpus"
+    },
+    {
+      "family": "original-crawl",
+      "provider": "datacite",
+      "key": "\"web crawl\" AND (1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001)"
+    },
+    {
+      "family": "original-crawl",
+      "provider": "zenodo",
+      "key": "(\"web archive\" OR \"web crawl\") AND (1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001)"
+    },
+    {
+      "family": "historical-directory",
+      "provider": "ia",
+      "key": "(title:(\"internet directory\" OR \"web directory\" OR \"world wide web directory\") OR subject:(\"internet directory\")) AND (date:[1996 TO 2001] OR description:(1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001))"
+    },
+    {
+      "family": "historical-directory",
+      "provider": "datacite",
+      "key": "(\"internet directory\" OR \"yellow pages\" OR \"open directory project\") AND (1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001)"
+    },
+    {
+      "family": "historical-directory",
+      "provider": "ia",
+      "key": "(title:dmoz OR subject:dmoz OR description:\"Open Directory Project\") AND (description:2000 OR description:2001 OR date:[2000 TO 2001])"
+    },
+    {
+      "family": "http-survey",
+      "provider": "crossref",
+      "key": "web server survey website inventory HTTP measurement 1998 1999 2000 2001"
+    },
+    {
+      "family": "http-survey",
+      "provider": "ia",
+      "key": "(title:\"web server survey\" OR description:\"web server survey\") AND (1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001)"
+    },
+    {
+      "family": "regional-fr",
+      "provider": "crossref",
+      "key": "archivage du web annuaire internet 1996 1997 1998 1999 2000 2001"
+    },
+    {
+      "family": "regional-de",
+      "provider": "crossref",
+      "key": "Webarchiv Webkatalog Webverzeichnis 1998 1999 2000 2001"
+    },
+    {
+      "family": "regional-iberian",
+      "provider": "crossref",
+      "key": "archivo web directorio web arquivo web 1998 1999 2000 2001"
+    },
+    {
+      "family": "regional-jp",
+      "provider": "crossref",
+      "key": "ウェブアーカイブ ウェブ収集 ウェブサイト 1998 1999 2000 2001"
+    },
+    {
+      "family": "regional-asia",
+      "provider": "datacite",
+      "key": "(\"网页归档\" OR \"网站目录\" OR \"ウェブアーカイブ\") AND (1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001)"
+    },
+    {
+      "family": "digital-media",
+      "provider": "ia",
+      "key": "(title:(\"internet on cd\" OR \"internet yellow pages\" OR \"web guide\") OR description:\"offline web\") AND (date:[1996 TO 2001] OR description:(1996 OR 1997 OR 1998 OR 1999 OR 2000 OR 2001))"
+    },
+    {
+      "family": "public-projection",
+      "provider": "zenodo",
+      "action": "detail",
+      "key": "8408539"
+    },
+    {
+      "family": "dmoz-manifest",
+      "provider": "ia",
+      "action": "detail",
+      "key": "dmoz-rdf-20150327"
+    }
+  ]
+}
