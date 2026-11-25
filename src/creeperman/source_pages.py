@@ -150,7 +150,7 @@ class PageFrontier:
             robots=self.db.execute("SELECT * FROM robots_cache WHERE host=?",(h,)).fetchone()
             if robots is None or time.time()-robots["checked"]>86400:
                 status,code,headers,body,sha=self.fetch_one("https://"+h+"/robots.txt",sid,"robots",fetch,interval,sleeper);used+=1
-                if not ((status=="received" and code==200) or (status=="http_error" and code in (404,410))):
+                if not ((status=="received" and code==200 and "html" not in headers.get("content-type","").lower() and not body.lstrip().lower().startswith((b"<!doctype html",b"<html"))) or (status=="http_error" and code in (404,410))):
                     excluded.add(h);continue
                 with self.db:self.db.execute("INSERT OR REPLACE INTO robots_cache VALUES(?,?,?,?)",(h,sha,code,time.time()))
                 if used>=limit:break

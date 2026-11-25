@@ -1,10 +1,10 @@
 # Creeperman — 本地 Agent 执行约定
 
-先读 docs/ACQUISITION_PRIORITY_2026-11-25.md（最新可获得性与公开物件执行顺序）、docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
+先读 docs/SOURCE_DISCOVERY_CRAWLER_WORKFLOW.md（当前自主资料发现爬虫执行入口，覆盖旧外联优先级）、docs/ACQUISITION_PRIORITY_2026-11-25.md（历史资料线索）、docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
 
 ## 目标
 
-使用真实竞赛任务包，取得可复核的基线外 1996—2001 exact hostname-year。当前参考基线 EED 为 76,430,446.4446，参考最低新增为 764,304.4645；以实际适用基线和官方规则为准。已完成首轮 census 与全量辅助年交集。首要任务是恢复来源原件、逐项出处和独立历史证据供应，不重跑旧池/交集，不先扩容。
+使用真实竞赛任务包，取得可复核的基线外 1996—2001 exact hostname-year。当前参考基线 EED 为 76,430,446.4446，参考最低新增为 764,304.4645；以实际适用基线和官方规则为准。已完成首轮 census 与全量辅助年交集。首要任务是恢复来源原件、逐项出处和独立历史证据供应，不重跑旧池/交集，不先扩容。用户已明确暂缓邮件与数据申请；当前优先运行有界资料发现前沿和公开目录爬虫，取得真实原件后使用现有证据流水线。
 
 ## 执行顺序
 
