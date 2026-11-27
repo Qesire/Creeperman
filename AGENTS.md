@@ -1,5 +1,7 @@
 # Creeperman — 本地 Agent 执行约定
 
+2026-11-27 的执行交接与可运行入口见 [档案工程实测](docs/ARCHIVE_ENGINEERING_2026-11-27.md)。处理下一批来源时，用同年冻结基线和执行机持有的最新累计 55 项裁决台账查重。
+
 先读 docs/SOURCE_DISCOVERY_CRAWLER_WORKFLOW.md（当前自主资料发现爬虫执行入口，覆盖旧外联优先级）、docs/ACQUISITION_PRIORITY_2026-11-25.md（历史资料线索）、docs/STRATEGY_AFTER_INTERSECTION_2026-11-25.md（最新实测后的执行优先级，覆盖旧手册的调度顺序）、docs/HANDOFF_LOCAL_AGENT.md、docs/PROBLEM_DEFINITION.md、docs/LITERATURE_AND_DISCOVERY_OPERATORS.md、config/source_registry.json，再查看最新实现和 CI。优先直接执行已有流水线，不重做调研和架构。
 
 ## 目标

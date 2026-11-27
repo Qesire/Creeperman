@@ -38,6 +38,23 @@ def test_catalog_to_files(tmp_path):
     assert len(rows(f,"bodies"))==2
     f.close()
 
+def test_zenodo_doi_and_record_link_share_seed_task(tmp_path):
+    f = Frontier(tmp_path / "source.sqlite")
+    seed(f, ("public-projection", "zenodo", "detail", "8408539"))
+    links = (b'<a href="https://doi.org/10.5281/zenodo.8408539">DOI</a>'
+             b'<a href="https://zenodo.org/records/8408539">dataset</a>')
+    with f.db:
+        f.import_document_bytes(links, "html", "https://library.example.org/paper", "paper")
+    tasks = rows(f, "tasks")
+    assert [json.loads(task["spec"]) for task in tasks] == [spec("zenodo", "detail", "8408539")]
+    assert len([edge for edge in rows(f, "edges") if edge["child"] == tasks[0]["id"]]) == 3
+    f.close()
+
+    for doi in ("10.1234/zenodo.8408539", "10.5281/zenodo.8408539a"):
+        assert route_url("https://doi.org/" + doi) == [
+            spec("datacite", "detail", doi), spec("crossref", "detail", doi)]
+
+
 def test_four_provider_contracts():
     t=spec("datacite","detail","10.5281/zenodo.123")
     rs,cs,_=parsed(t,{"data":{"id":"10.5281/zenodo.123","attributes":{"doi":"10.5281/zenodo.123",

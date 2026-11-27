@@ -91,7 +91,14 @@ class Store:
         tmp = Path(name)
         try:
             if self.s3:
-                r = self.s3.get_object(Bucket=self.bucket, Key=key)
+                try:
+                    r = self.s3.get_object(Bucket=self.bucket, Key=key)
+                except self.s3.exceptions.ClientError as exc:
+                    code = exc.response.get("Error", {}).get("Code")
+                    status = exc.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+                    if status == 404 and code in {"NoSuchKey", "NotFound", "404"}:
+                        raise FileNotFoundError(key) from exc
+                    raise
                 body = r["Body"]
                 try:
                     if r["ContentLength"] != ref["bytes"]:

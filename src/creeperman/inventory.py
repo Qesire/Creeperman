@@ -43,6 +43,7 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
     with tempfile.TemporaryDirectory(prefix=".census-", dir=out.parent) as tmp:
         p = Path(tmp)
         db = sqlite3.connect(p / "staging.sqlite")
+        candidates = cur = None
         try:
             db.executescript("""
               PRAGMA temp_store=FILE;
@@ -226,6 +227,12 @@ def census(baseline: Path, audit: Path, model: Path, sources: Path, out: Path):
                 "output_sha256": {n: sha(p/n) for n in ("opportunities.jsonl","core_new_candidates.txt","rejected.jsonl")}}
             write_json(p / "report.json", report)
         finally:
+            # An interrupted SELECT keeps SQLite's file handle alive on
+            # Windows even after Connection.close(). Finalize cursors before
+            # TemporaryDirectory cleanup so the original error is preserved.
+            for cursor in (candidates, cur):
+                if cursor is not None:
+                    cursor.close()
             db.close()
         (p / "staging.sqlite").unlink()
         # Move directory contents as a single rename, preserving the temporary

@@ -6,6 +6,8 @@
 
 ## v0.2 实现与移交
 
+**2026-11-27 本地裁决累计 55 个主机年度，37.7812 EED。** LAW WebBase 2001 的完整 URL 节点表新增 0 EED。DMOZ 两个主目录前缀和两个完整分类版新增 11 项、5.7067 EED。公开交接记录列出 IA 分页、按摘要复用回放正文、获取前查重和离线 Parquet 差集的代码与运行方法。[实现、实测与接手入口](docs/ARCHIVE_ENGINEERING_2026-11-27.md)
+
 **下一位执行 Agent 首先阅读 [AGENTS.md](AGENTS.md) 和 [本地运行交接手册](docs/HANDOFF_LOCAL_AGENT.md)。** 已完成原始资料适配、联合差集、双馆在线查询/回放、全文反搜、来源追溯、Temporal 批次执行、结果导入和经裁决年度结算。
 
 - [具体来源登记表](config/source_registry.json)：材料入口、祖源、格式、优先级、剩余范围及访问限制。

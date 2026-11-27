@@ -17,7 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit, unquote
 from .core import canonical
 from .source_frontier import (Frontier, MAX_BYTES, FILE_RE, digest, utc,
-    document_links, cue_score, http_fetcher, safe_url)
+    cue_score, http_fetcher, safe_url)
 from .locking import collector_lock
 
 SCHEMA="source-page-scopes-v1"
@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS page_requests(id INTEGER PRIMARY KEY AUTOINCREMENT,
  started TEXT NOT NULL,ended TEXT,status TEXT NOT NULL,http_status INTEGER,sha TEXT,headers TEXT,error TEXT);
 CREATE TABLE IF NOT EXISTS robots_cache(host TEXT PRIMARY KEY,sha TEXT,code INTEGER NOT NULL,checked REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS page_cooldown(host TEXT PRIMARY KEY,until_epoch REAL NOT NULL);
+CREATE INDEX IF NOT EXISTS page_task_queue ON page_tasks(state,priority DESC,depth,url);
 """
 
 
@@ -99,6 +100,82 @@ class PageFrontier:
                 validate_scope(s);sid=digest(s)
                 self.db.execute("INSERT OR IGNORE INTO page_scopes VALUES(?,?)",(sid,canonical(s).decode()))
                 for u in s["seeds"]:self.enqueue(u,sid,0,20,"scope:"+sid)
+    def index_local_pages(self):
+        # Documents can have been imported by an older, independent CLI process.
+        # Snapshot metadata once per run; never load or reparse archived bodies.
+        self.db.create_function("normalized_page_url", 1, page_url, deterministic=True)
+        self.db.execute("""CREATE TEMP TABLE IF NOT EXISTS reusable_pages(
+            url TEXT PRIMARY KEY, document_id TEXT NOT NULL)""")
+        self.db.execute("DELETE FROM reusable_pages")
+        self.db.execute("""INSERT INTO reusable_pages(url,document_id)
+            SELECT normalized_page_url(source_url) AS url,min(id)
+            FROM documents WHERE format='html'
+            GROUP BY normalized_page_url(source_url)
+            HAVING url IS NOT NULL AND count(DISTINCT sha)=1
+                AND EXISTS (SELECT 1 FROM bodies WHERE bodies.sha=documents.sha)""")
+        # A second, different snapshot may have arrived since an earlier run.
+        # Keep the previous choice as provenance and release the ambiguous task.
+        self.db.execute("""INSERT OR IGNORE INTO page_edges(parent,child,relation)
+            SELECT url,document_id,'reused_local_snapshot' FROM page_tasks t
+            WHERE state='reused_local' AND NOT EXISTS (SELECT 1 FROM reusable_pages r WHERE r.url=t.url)""")
+        self.db.execute("""UPDATE page_tasks SET state='queued',document_id=NULL
+            WHERE state='reused_local' AND NOT EXISTS (SELECT 1 FROM reusable_pages r WHERE r.url=page_tasks.url)""")
+        return self.db.execute("SELECT 1 FROM reusable_pages LIMIT 1").fetchone() is not None
+
+    def expand_page(self, row, scope, document_id, max_children):
+        # The importer already resolved relative URLs against this document's
+        # own source URL and HTML base. Keep the original observation intact.
+        proposals = {}
+        links = self.db.execute("""SELECT json_extract(body,'$.url'),json_extract(body,'$.description')
+            FROM observations WHERE parent=?""", (document_id,))
+        for link, context in links:
+            child = page_url(link)
+            if child and child != row["url"] and in_scope(child, scope) and not FILE_RE.search(child):
+                score = cue_score(context + " " + child)
+                proposals[child] = max(score, proposals.get(child, -1))
+        self.db.executemany("INSERT OR IGNORE INTO page_edges VALUES(?,?,'unreviewed_page_link')",
+                            ((document_id, child) for child in proposals))
+        known = {r[0] for r in self.db.execute("""SELECT e.child FROM page_edges e
+            JOIN page_tasks t ON t.url=e.child WHERE e.parent=? AND e.relation='unreviewed_page_link'""",
+            (document_id,))}
+        admitted = 0
+        for child, score in sorted(proposals.items(), key=lambda item: (-item[1], item[0])):
+            if child not in known:
+                if admitted >= max_children:
+                    continue
+                admitted += 1
+            self.enqueue(child, row["scope"], row["depth"] + 1, score, document_id)
+
+    def reuse_queued(self, limit, max_depth, max_children):
+        reused = 0
+        while reused < limit:
+            row = self.db.execute("""SELECT t.*,s.body,r.document_id AS local_id
+                FROM page_tasks t JOIN reusable_pages r ON r.url=t.url
+                JOIN page_scopes s ON s.id=t.scope
+                WHERE t.state='queued' AND t.depth<=?
+                ORDER BY t.priority DESC,t.depth,t.url LIMIT 1""", (max_depth,)).fetchone()
+            if row is None:
+                break
+            scope = json.loads(row["body"])
+            if not in_scope(row["url"], scope):
+                raise ValueError("persisted task outside scope")
+            with self.db:
+                self.expand_page(row, scope, row["local_id"], max_children)
+                self.db.execute("INSERT OR IGNORE INTO page_edges VALUES(?,?,'reused_local_snapshot')",
+                                (row["url"], row["local_id"]))
+                self.db.execute("""UPDATE page_tasks SET state='reused_local',document_id=?
+                    WHERE url=?""", (row["local_id"], row["url"]))
+            reused += 1
+        return reused
+
+    def reuse_local(self, max_local_pages=200, max_depth=2, max_children=15):
+        if not 1 <= max_local_pages <= 10000 or not 0 <= max_depth <= 8 or not 1 <= max_children <= 100:
+            raise ValueError("invalid local bounds")
+        with self.db:
+            has_local = self.index_local_pages()
+        reused = self.reuse_queued(max_local_pages, max_depth, max_children) if has_local else 0
+        return {"attempted_this_run": 0, "reused_local_this_run": reused, **self.summary()}
+
     def fetch_one(self,u,sid,kind,fetch,interval,sleeper):
         h=urlsplit(u).hostname
         last=self.db.execute("SELECT max(started) FROM page_requests WHERE host=?",(h,)).fetchone()[0]
@@ -130,15 +207,21 @@ class PageFrontier:
                 until=253402300799 if code in (401,403) else time.time()+delay
                 self.db.execute("INSERT INTO page_cooldown VALUES(?,?) ON CONFLICT(host) DO UPDATE SET until_epoch=max(until_epoch,excluded.until_epoch)",(h,until))
         return status,code,headers,body,sha
-    def run(self,limit,interval,max_depth,max_children,user_agent,fetch,sleeper=time.sleep):
+    def run(self,limit,interval,max_depth,max_children,user_agent,fetch,sleeper=time.sleep,*,max_local_pages=200):
         from protego import Protego
-        if not 1<=limit<=200 or not 3<=interval<=3600 or not 0<=max_depth<=8 or not 1<=max_children<=100:
+        if not 1<=limit<=200 or not 3<=interval<=3600 or not 0<=max_depth<=8 or not 1<=max_children<=100 or not 1<=max_local_pages<=10000:
             raise ValueError("invalid crawl bounds")
-        used=0;excluded=set()
+        with self.db:
+            has_local = self.index_local_pages()
+        used=0;reused=0;excluded=set()
         while used<limit:
+            if has_local and reused < max_local_pages:
+                reused += self.reuse_queued(max_local_pages - reused, max_depth, max_children)
             candidates=self.db.execute("""SELECT t.*,s.body,coalesce(a.n,0) spent FROM page_tasks t JOIN page_scopes s ON s.id=t.scope
               LEFT JOIN (SELECT scope,count(*) n FROM page_requests GROUP BY scope) a ON a.scope=t.scope
-              WHERE t.state='queued' AND t.depth<=? ORDER BY spent,priority DESC,depth,url""",(max_depth,))
+              WHERE t.state='queued' AND t.depth<=?
+              AND NOT EXISTS (SELECT 1 FROM reusable_pages r WHERE r.url=t.url)
+              ORDER BY spent,priority DESC,depth,url""",(max_depth,))
             row=None
             for r in candidates:
                 h=urlsplit(r["url"]).hostname
@@ -180,20 +263,12 @@ class PageFrontier:
                         self.db.execute("SAVEPOINT page_parse")
                         try:
                             doc=self.f.import_document_bytes(body,"html",u,s["family"])
-                            proposals={}
-                            for link in document_links(body,"html",u):
-                                v=page_url(link["url"])
-                                if not v or v==u or not in_scope(v,s) or FILE_RE.search(v):continue
-                                score=cue_score(link["context"]+" "+v)
-                                proposals[v]=max(score,proposals.get(v,-1))
-                                self.db.execute("INSERT OR IGNORE INTO page_edges VALUES(?,?,?)",(doc,v,"unreviewed_page_link"))
-                            for v,score in sorted(proposals.items(),key=lambda x:(-x[1],x[0]))[:max_children]:
-                                self.enqueue(v,sid,row["depth"]+1,score,doc)
+                            self.expand_page(row, s, doc, max_children)
                             self.db.execute("RELEASE page_parse");state="parsed"
                         except (ValueError,KeyError,TypeError,UnicodeError,AttributeError):
                             self.db.execute("ROLLBACK TO page_parse");self.db.execute("RELEASE page_parse");doc=None;state="invalid_document"
                 self.db.execute("UPDATE page_tasks SET state=?,document_id=? WHERE url=?",(state,doc,u))
-        return {"attempted_this_run":used,"excluded_hosts_this_run":sorted(excluded),**self.summary()}
+        return {"attempted_this_run":used,"reused_local_this_run":reused,"excluded_hosts_this_run":sorted(excluded),**self.summary()}
     def summary(self):
         return {"schema":SCHEMA,"page_states":dict(self.db.execute("SELECT state,count(*) FROM page_tasks GROUP BY state")),
           "request_kinds":dict(self.db.execute("SELECT kind,count(*) FROM page_requests GROUP BY kind")),
@@ -217,8 +292,13 @@ def main(argv=None):
     sub=p.add_subparsers(dest="cmd",required=True)
     q=sub.add_parser("init");q.add_argument("--scopes",required=True,type=Path)
     r=sub.add_parser("run");r.add_argument("--max-requests",required=True,type=int)
-    r.add_argument("--interval",type=float,default=4);r.add_argument("--max-depth",type=int,default=2);r.add_argument("--max-children",type=int,default=15)
+    r.add_argument("--interval",type=float,default=4)
     r.add_argument("--user-agent",required=True);r.add_argument("--allow-public-pages",required=True,action="store_true")
+    local=sub.add_parser("reuse-local",help="expand already imported HTML pages offline")
+    for parser in (local, r):
+        parser.add_argument("--max-local-pages",type=int,default=200)
+        parser.add_argument("--max-depth",type=int,default=2)
+        parser.add_argument("--max-children",type=int,default=15)
     e=sub.add_parser("export");e.add_argument("--out",required=True,type=Path)
     sub.add_parser("status")
     a=p.parse_args(argv);f=Frontier(a.db)
@@ -226,7 +306,8 @@ def main(argv=None):
         with collector_lock(a.db):
             pf=PageFrontier(f)
             if a.cmd=="init":pf.init(json.loads(a.scopes.read_text(encoding="utf-8")));result=pf.summary()
-            elif a.cmd=="run":result=pf.run(a.max_requests,a.interval,a.max_depth,a.max_children,a.user_agent,make_fetcher(a.user_agent))
+            elif a.cmd=="reuse-local":result=pf.reuse_local(a.max_local_pages,a.max_depth,a.max_children)
+            elif a.cmd=="run":result=pf.run(a.max_requests,a.interval,a.max_depth,a.max_children,a.user_agent,make_fetcher(a.user_agent),max_local_pages=a.max_local_pages)
             elif a.cmd=="export":pf.export(a.out);result=pf.summary()
             else:result=pf.summary()
         print(canonical(result).decode(),end="")

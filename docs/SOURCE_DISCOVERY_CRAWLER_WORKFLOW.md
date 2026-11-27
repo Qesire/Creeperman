@@ -77,6 +77,29 @@ ACHE 固定版本 326f06779eb3d425deb48f5fe804942828298a99 的具体代码：
 
 robots GET 也占预算，未知规则/解析失败或访问阻断停止该主机；同 host 缓存 robots 并遵守 crawl-delay/request-rate，拒绝转向未批准范围。实际保存响应字节及 SHA；页面解析生成共享 documents/resources/edges，后续继续运行 source_frontier 处理新出现的公开目录 ID。允许额外页面 scope 必须由本地操作者确认 URL、条款及实际公开访问，不能按候选根域无限扩展。页爬虫不自动下载二进制，非 HTML 响应只留待审查。
 
+### 3.3 获取前核对本机库存
+
+在同一个私有发现库中绑定本地文件总账。TSV 使用 `path / bytes / sha256` 或 `相对路径 / 字节 / SHA256` 列，路径相对于所给根目录。下载收据使用 JSON 数组，每条成功记录含 `url`、`state=downloaded`、数值 `status=200`、`bytes` 和 `sha256`，可带 `final_url`。重新绑定会在一个事务中替换旧索引，可重复指定 `--receipt`。
+
+    python -m creeperman.source_frontier --db work/source-frontier.sqlite bind-local --inventory work/local-inventory.tsv --root work/materials --receipt work/retrieval_manifest.json
+    python -m creeperman.source_frontier --db work/source-frontier.sqlite check-files --input work/new-files.jsonl --out work/precheck-001
+    python -m creeperman.source_pages --db work/source-frontier.sqlite reuse-local
+
+`check-files` 接收逐行文件描述符，例如 `{"url":"https://example.org/v1/collection.tgz","size":12345}`，可提供 `declared_checksum`（如带 `sha256:` 前缀的十六进制值）、`declared_sha1` 或 `declared_md5`。正常 `source_frontier export` 也会自动核对每一条文件观察。SHA-256 直接查总账索引，只有较短摘要时按已知大小缩小核对范围。回读命中的本地文件，验证它仍与总账相符，再检查来源声明的摘要。不同路径可复用相同内容。
+
+| 预检结果 | 如何使用 |
+|---|---|
+| `reuse_local` | 直接从记录的本地路径核对原件、出处与日期。 |
+| `review_local_snapshot` | 完整下载收据和本地字节支持复核同一 URL 的已保存版本。远端当前版本仍待确认。 |
+| `needs_review` | 进入 `acquisition_queue.jsonl` 供人工复核。仅 HTTP/HTTPS 协议不同但其余地址相同，且能回读另一协议的副本时，条目附该收据 URL 和本地路径。 |
+| `duplicate_in_batch` | 同一批次的等价获取请求共用一条待办。每次观察及其来源仍保存在 `precheck.jsonl`。 |
+
+未绑定总账时，报告显示 `inventory_bound=false`，只进行批内查重。更新文件或收据后重新绑定，再导出到新目录。来源域、文件名或历史主机命中基线均不足以跳过一个新资料对象。年度差集仍使用原有 census 与结算流程。
+
+单批试查用 `check-files`。持续接收新清单时，将每批 JSONL 通过 `import-document --format file-descriptors` 导入同一发现库，登记真实原始清单 URL 和来源家族，随后用常规 `export` 生成累计待办。相同清单重复导入后行数保持稳定。两份清单观察到同一请求时，预检记录保留两个出处和原始行号，获取队列仅保留一次。不同摘要或版本继续单列。导出目录包含本机文件定位和原始来源信息，仅供本地使用。
+
+对已通过 `import-document --format html` 导入的本地快照，`reuse-local` 按确切页面 URL 展开已保存的链接。页面有多个不同内容版本时保留待办。正常页面 `run` 同样先复用本地页，实际 HTTP 请求与 `reused_local_this_run` 分列。每轮本地复用量可用 `--max-local-pages` 控制。
+
 ## 4. 形成真正循环的输入输出
 
 阶段 A：seed family（资料生成机制）→ 有限查询 → 论文/数据集/收藏/期次。

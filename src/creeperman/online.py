@@ -19,6 +19,7 @@ from pathlib import Path
 from .cdx import Collector, query_params, interpret
 from .core import YEARS, ALL, bit, host, timestamp_year, url_host, canonical
 from .extract import clean_url, html_clues, decode_body
+from .payloads import replay_body
 
 PROVIDERS=("ia","arquivo")
 ACTIONS={"ia":{"lookup","replay","metadata"},"arquivo":{"lookup","replay","search"}}
@@ -273,20 +274,54 @@ def run_online(store,envelope,job,inp,out,collector,progress):
                 r=previous;stats["reused_checkpoint_records"]+=1
             else:
                 url,params=request_spec(provider,action,row)
-                meta,body=(previous,None) if previous else (
-                    ({"state":"deferred_cooldown","requests":0},None) if stop else collector.fetch(url,params))
-                r=interpret_action(provider,action,row,body,meta)
+                cached=None
+                if action=="replay" and row.get("reuse_payload") is True and not previous:
+                    cached=replay_body(collector.state,store,provider,row.get("digest"))
+                if cached:
+                    local=p/"payload"
+                    try:
+                        store.materialize(cached["ref"],local)
+                        body=local.read_bytes()
+                    except FileNotFoundError:
+                        cached=None
+                    finally:
+                        local.unlink(missing_ok=True)
+                if cached:
+                    h,base,stamp,y=capture_row(row)
+                    meta={"state":"cached_payload_discovery","requests":0}
+                    r={**meta,"hostname":h,"year":y,"original":base,"requested_timestamp":stamp,
+                       "archive_digest":row["digest"],"cached_payload_ref":cached["ref"],
+                       "payload_original":cached["original"],"payload_timestamp":cached["timestamp"],
+                       "qualification":"not_evaluated"}
+                else:
+                    meta,body=(previous,None) if previous else (
+                        ({"state":"deferred_cooldown","requests":0},None) if stop else collector.fetch(url,params))
+                    r=interpret_action(provider,action,row,body,meta)
                 r.update(record_line=n,provider=provider,action=action,
                          request_input=row)
-                if body is not None:
+                if body is not None and not cached:
                     raw=p/"response";raw.write_bytes(body)
                     r["response_ref"]=store.put(raw)
-                if action=="replay" and r["state"]=="replay_review":
+                if action=="replay" and r["state"] in ("replay_review","cached_payload_discovery"):
+                    if not cached:
+                        base,stamp=r["actual_original"],r["actual_timestamp"]
+                        headers=meta.get("headers",{})
+                        original_status=str(headers.get("x-archive-orig-status","200")).split(" ",1)[0]
+                        if (r.get("archive_digest_matches_received_body") and meta.get("http_status")==200
+                                and original_status=="200" and clean_url(base)==clean_url(row["original"])
+                                and headers.get("content-type","").split(";",1)[0].strip().lower()=="text/html"
+                                and headers.get("x-archive-orig-content-type","text/html").split(";",1)[0].strip().lower()=="text/html"
+                                and headers.get("x-archive-orig-content-encoding","identity").lower() in ("","identity")):
+                            replay_body(collector.state,store,provider,row["digest"],verified={
+                                "ref":r["response_ref"],"original":base,"timestamp":stamp})
                     links=p/"references.jsonl"
                     count=0
                     with links.open("wb") as l:
-                        for clue in html_clues(decode_body(body),r["actual_original"],r["year"],
-                            r["actual_timestamp"],replay_provider=provider,replay_url=meta.get("requested_url")):
+                        # id_ returns original HTML. Resolve its root-relative paths
+                        # and base element against this capture, including cache hits.
+                        for clue in html_clues(decode_body(body),base,r["year"],stamp):
+                            if cached:
+                                clue["date_semantics"]="link resolved against the requested capture URL using a body reused by digest"
                             l.write(canonical(clue));count+=1
                     r["references_ref"]=store.put(links);r["reference_count"]=count
                 collector.finish_target(envelope["job_id"],n,r)

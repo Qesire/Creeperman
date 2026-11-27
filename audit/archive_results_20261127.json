@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-27",
+  "scope": "Local exact-host/year review. Organizer acceptance pending.",
+  "baseline": "merge261121-3",
+  "authority": "ed4fe675daf7a3e3ff09d548a2bd0556bb4856e1df657d064d3936fb3122dbaa",
+  "calculator_sha256": "2488335c79977002cffecf394cf1845b80d2dd89ed48f3143e3555b883c9e411",
+  "model_sha256": "480d86bc287ef2c2bc80be62ecffe6eecba950dddf07bb9d3f15e6c2c268eb07",
+  "webbase": {
+    "source": "https://law.di.unimi.it/webdata/webbase-2001/",
+    "file": "webbase-2001.urls.gz",
+    "compressed_bytes": 720229219,
+    "sha256": "ce9dd597023b8abd595846d6fc66b9e97f11c8cfc6e94d8e6e126ea302c4953c",
+    "publisher_md5": "cf08c1cebef1f79387d2c07c61f84ad8",
+    "year": 2001,
+    "url_nodes": 118142155,
+    "distinct_candidate_hosts": 738469,
+    "same_year_baseline": 738468,
+    "outside_baseline": 1,
+    "reviewed_eed": "0.0000"
+  },
+  "dmoz_editions": [
+    {
+      "source_file": "content-20000815-u8.rdf.gz",
+      "source_sha256": "7dc6b03e006ee1804741498ce3d7b4bbc6f6c6b074022730cf78ce99fadad859",
+      "capture_url": "https://web.archive.org/web/20000815053618id_/http://dmoz.org:80/rdf/content.rdf.u8.gz",
+      "generated_gmt": "2000-08-07 08:00:40",
+      "gzip_eof": false
+    },
+    {
+      "source_file": "content-20000815.rdf.gz",
+      "source_sha256": "502ddf52aa5f02cb83c7b6478eb0a3a48cdac753876d38041dfbda7ee4a19714",
+      "capture_url": "https://web.archive.org/web/20000815092656id_/http://dmoz.org:80/rdf/content.rdf.gz",
+      "generated_gmt": "2000-07-18 20:18:21",
+      "gzip_eof": false
+    },
+    {
+      "source_file": "kt-content-20010611.rdf.gz",
+      "source_sha256": "a97595ef558a4bed2b14f220d97f39ce5326247e616d082e4b446a866437e1bb",
+      "capture_url": "https://web.archive.org/web/20010611215006id_/http://dmoz.org:80/rdf/kt-content.rdf.u8.gz",
+      "generated_gmt": "2001-06-10 23:14:55",
+      "gzip_eof": true
+    },
+    {
+      "source_file": "kt-content-20011116.rdf.gz",
+      "source_sha256": "32c6d53bcfd24454ef283dcb6feb01bce086647cc941f32fa9de5c6775852977",
+      "capture_url": "https://web.archive.org/web/20011116104011id_/http://dmoz.org:80/rdf/kt-content.rdf.u8.gz",
+      "generated_gmt": "2001-11-13 16:41:00",
+      "gzip_eof": true
+    }
+  ],
+  "dmoz_by_year": [
+    {
+      "year": 2000,
+      "hosts": 13834,
+      "same_year_baseline": 13828,
+      "outside_baseline": 6,
+      "complete_record_hosts": 13829
+    },
+    {
+      "year": 2001,
+      "hosts": 8988,
+      "same_year_baseline": 8983,
+      "outside_baseline": 5,
+      "complete_record_hosts": 8988
+    }
+  ],
+  "previous": {
+    "count": 44,
+    "eed": "32.0745",
+    "ledger_sha256": "2b3c0276073e42123f86a45b10a815c5d2f899d15c32967d5754e824f92935d5"
+  },
+  "round": {
+    "count": 11,
+    "eed": "5.7067"
+  },
+  "cumulative": {
+    "count": 55,
+    "eed": "37.7812"
+  },
+  "cumulative_ledger_sha256": "626d5ff02b818ff54c69009c4bf50a118fca6c28790efd9a49bc1fbfcdbf4a57"
+}

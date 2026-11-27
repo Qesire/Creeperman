@@ -80,13 +80,15 @@ def sha_value(data):
     import hashlib
     return hashlib.sha256(canonical(data)).hexdigest()
 
-def followup_rows(db_path,authority,mode,provider,limit):
+def followup_rows(db_path,authority,mode,provider,limit,*,reuse_payloads=False):
     """Generate new explicitly bounded plans from completed catalog results.
 
     The catalog retains attempts; a previous ambiguous or failed action is
     NOT automatically repeated. Explicit new round/manual plans are needed.
     """
     if not 1<=limit<=100000:raise ValueError("invalid limit")
+    if reuse_payloads and mode!="replay":
+        raise ValueError("payload reuse requires replay")
     db=sqlite3.connect(f"file:{Path(db_path).resolve().as_posix()}?mode=ro",uri=True)
     try:
         # All prior attempts for the authority are examined once. For large
@@ -99,19 +101,23 @@ def followup_rows(db_path,authority,mode,provider,limit):
                 AND NOT EXISTS(SELECT 1 FROM online_attempts a
                    WHERE a.authority=w.authority AND a.provider=?
                    AND a.action='replay' AND a.hostname=w.hostname
-                   AND a.timestamp=w.timestamp AND a.original=w.original)
+                   AND a.timestamp=w.timestamp AND a.original=w.original
+                   AND (a.state<>'cached_payload_discovery' OR ?))
                 AND NOT EXISTS(SELECT 1 FROM online_attempts a
                    WHERE a.authority=w.authority AND a.provider=?
                    AND a.action='replay' AND a.hostname=w.hostname
                    AND substr(a.timestamp,1,4)=CAST(w.year AS TEXT)
-                   AND a.state='replay_review')
+                   AND (a.state='replay_review' OR (? AND a.state='cached_payload_discovery')))
                 ORDER BY w.hostname,w.year,w.timestamp,w.original"""
             seen=set()
-            for h,ts,u,d,prov in db.execute(query,(authority,provider,provider+"-cdx",provider,provider)):
+            for h,ts,u,d,prov in db.execute(query,(authority,provider,provider+"-cdx",provider,reuse_payloads,provider,reuse_payloads)):
                 key=(h,timestamp_year(ts))
                 if key in seen:continue
                 seen.add(key)
-                yield {"hostname":h,"timestamp":ts,"original":u,"digest":d}
+                row={"hostname":h,"timestamp":ts,"original":u,"digest":d}
+                if reuse_payloads:
+                    row["reuse_payload"]=True
+                yield row
                 if len(seen)>=limit:return
         elif mode=="metadata":
             seen=set()

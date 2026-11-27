@@ -1,4 +1,4 @@
-"""One bounded metadata query per explicitly observed hostname.
+"""IA CDX transport and legacy bounded discovery for observed hostnames.
 
 Not a complete index scan; no result is ever an assertion of absence.
 The collector is single active process per provider budget. No IP rotation.
@@ -134,6 +134,15 @@ def query_params(row):
             "from":f"{min(years)}0101000000","to":f"{max(years)}1231235959",
             "filter":["original:"+pattern,"statuscode:200","mimetype:text/html"],
             "fl":",".join(FIELDS),"output":"json","limit":50,"showResumeKey":"true"}
+
+
+def annual_params(hostname, year):
+    """A single calendar year, every path on one exact hostname, one index block per page."""
+    if type(year) is not int or year not in YEARS:
+        raise ValueError("expected a core target year")
+    params = query_params({"hostname": hostname, "target_mask": bit(year)})
+    del params["limit"], params["showResumeKey"]
+    return {**params, "pageSize": 1}
 
 
 def interpret(row, body, meta):

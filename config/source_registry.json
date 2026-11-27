@@ -85,8 +85,16 @@
       "format": "dmoz-rdf",
       "priority": "P2",
       "documentation": "https://archive.org/details/dmoz-rdf-20150327",
-      "contract": "Late RDF may supply clues. No target-period dump bound. Adapter deliberately leaves year unset.",
+      "contract": "Late RDF may supply clues. This adapter deliberately leaves year unset. Dated archive editions are tracked separately.",
       "role": "discovery"
+    },
+    {
+      "id": "dmoz-archived-rdf-2000-2001",
+      "origin_family": "odp-directory",
+      "priority": "residual-only",
+      "documentation": "https://web.archive.org/web/20010610104128id_/http://dmoz.org:80/rdf/",
+      "contract": "Two August 2000 archived main-file prefixes and two complete 2001 Kids & Teens editions were reconciled. The complete core-year main directories remain unmeasured. Match original URL, release, capture time, payload digest and gzip completeness before reusing bytes.",
+      "role": "residual"
     },
     {
       "id": "geocities-2009",
@@ -127,7 +135,7 @@
       "origin_family": "stanford-webbase",
       "priority": "near-exhausted",
       "documentation": "https://law.di.unimi.it/webdata/webbase-2001/",
-      "contract": "User reports almost entirely consumed. Only explicitly unprocessed ranges/roles reopen.",
+      "contract": "Full LAW webbase-2001.urls.gz checked against the 2001 baseline: 118142155 nodes, 738469 distinct hosts after candidate syntax filtering, 738468 baseline hits, no positive-weight residual. Node labels alone lack per-item response dates and HTTP status.",
       "role": "residual"
     }
   ]

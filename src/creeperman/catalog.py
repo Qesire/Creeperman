@@ -94,7 +94,7 @@ def ingest(store, db_path: Path, refs):
                             if ordinal in seen or r["request_input"]!=target or r["provider"]!=job["provider"] or r["action"]!=job["action"]:
                                 raise ValueError("online result target mismatch")
                             seen.add(ordinal)
-                            for k in ("response_ref","references_ref"):
+                            for k in ("response_ref","references_ref","cached_payload_ref"):
                                 if r.get(k):store.check_ref(r[k])
                             if type(r["requests"]) is not int or not 0<=r["requests"]<=1:
                                 raise ValueError("invalid request count")

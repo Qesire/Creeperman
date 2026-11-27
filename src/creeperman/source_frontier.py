@@ -21,7 +21,9 @@ from urllib.parse import quote, urlencode, urljoin, urlsplit, unquote
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 import xml.etree.ElementTree as ET
 
-from .core import canonical
+from .core import canonical, jsonl
+from .locking import collector_lock
+from .source_precheck import bind_inventory, emit_precheck, new_output, write_precheck
 
 SCHEMA = "source-frontier-v1"
 PROVIDERS = ("crossref", "datacite", "zenodo", "ia")
@@ -138,7 +140,10 @@ def route_url(url):
     if h in ("doi.org","dx.doi.org"):
         d=normalize_doi(path.lstrip("/"))
         if d:
-            return [spec("zenodo","detail",d.split(".zenodo.")[-1])] if re.fullmatch(r"10\.5281/zenodo\.\d+",d) else [spec("datacite","detail",d),spec("crossref","detail",d)]
+            record = re.fullmatch(r"10\.5281/zenodo\.([0-9]{1,16})", d)
+            if record:
+                return [spec("zenodo", "detail", record.group(1))]
+            return [spec("datacite", "detail", d), spec("crossref", "detail", d)]
     return []
 
 
@@ -149,6 +154,31 @@ def resource(kind,identity,*,title="",description="",url=None,**fields):
             "year_mentions":sorted({int(y) for y in YEARS.findall(s)}),
             "rank":cue_score(s)+(8 if kind=="file_descriptor" else 0),
             "historical_year_verified":False, "qualification":"not_evaluated",**fields}
+
+
+def manifest_files(raw):
+    fields = ("file_name", "record_id", "version", "size", "declared_checksum", "declared_sha256",
+              "declared_sha1", "declared_md5", "metadata_mtime", "file_role", "access_hint",
+              "license_hint", "origin_family")
+    for line, text in enumerate(raw.decode("utf-8-sig").splitlines(), 1):
+        if not text.strip():
+            continue
+        try:
+            row = json.loads(text)
+        except ValueError as exc:
+            raise ValueError(f"invalid file descriptor at line {line}") from exc
+        if not isinstance(row, dict):
+            raise ValueError(f"expected a file descriptor at line {line}")
+        kind = row.get("kind", "file_descriptor")
+        url = row.get("url")
+        identity = row.get("identity") or url
+        if kind not in ("file_descriptor", "file_locator_hint") or not isinstance(identity, str) or not identity.strip():
+            raise ValueError(f"invalid file identity or kind at line {line}")
+        if url is not None and not safe_url(url):
+            raise ValueError(f"invalid file URL at line {line}")
+        details = {k: row[k] for k in fields if k in row}
+        yield line, resource(kind, identity, url=url, title=row.get("title") or row.get("file_name"),
+                             description=row.get("description"), **details)
 
 
 def parsed(task, data):
@@ -399,6 +429,21 @@ class Frontier:
         if len(raw)>MAX_BYTES:raise ValueError("document exceeds metadata cap; split locally")
         # Caller may be within the scoped page crawl's transaction.
         h=self.put_body(raw); doc=digest([h,source_url,fmt])
+        if fmt == "file-descriptors":
+            already_imported = self.db.execute("SELECT 1 FROM documents WHERE id=?", (doc,)).fetchone()
+            if not already_imported:
+                self.db.execute("SAVEPOINT import_manifest")
+                try:
+                    self.db.execute("INSERT INTO documents VALUES(?,?,?,?)", (doc, h, source_url, fmt))
+                    for line, record in manifest_files(raw):
+                        self.observe(doc, "local_file_manifest", record, line)
+                except BaseException:
+                    self.db.execute("ROLLBACK TO import_manifest")
+                    raise
+                finally:
+                    self.db.execute("RELEASE import_manifest")
+            self.db.execute("INSERT OR IGNORE INTO edges VALUES(?,?,?)", ("family:" + family, doc, "imported file manifest"))
+            return doc
         self.db.execute("INSERT OR IGNORE INTO documents VALUES(?,?,?,?)",(doc,h,source_url,fmt))
         for i,l in enumerate(document_links(raw,fmt,source_url)):
             r=resource("file_locator_hint" if FILE_RE.search(l["url"]) else "locator_hint",
@@ -517,7 +562,9 @@ class Frontier:
                 "provider_cooldowns":counts("SELECT provider,until_epoch FROM cooldown"),
                 "verified_new_eed":None}
     def export(self,out):
-        out=Path(out);out.mkdir(parents=True,exist_ok=False)
+        with new_output(out) as stage:
+            self._export(stage)
+    def _export(self,out):
         queries={
           "frontier.jsonl":"SELECT * FROM tasks ORDER BY id",
           "attempts.jsonl":"SELECT * FROM attempts ORDER BY started,task_id",
@@ -535,7 +582,15 @@ class Frontier:
                         if isinstance(d.get(k),str):d[k]=json.loads(d[k])
                     if name in ("resources.jsonl","file_review.jsonl"):d=d["body"]
                     f.write(canonical(d))
-        (out/"report.json").write_bytes(canonical(self.summary()))
+        # Each observation retains its own locator, checksum and version even
+        # when multiple providers or versions share the same resource identity.
+        files = self.db.execute("""SELECT parent,locator,body FROM observations
+            WHERE json_extract(body,'$.kind') IN ('file_descriptor','file_locator_hint')
+            ORDER BY parent,resource_id,locator""")
+        records = ({**json.loads(r["body"]), "parent": r["parent"], "locator": r["locator"]} for r in files)
+        precheck = emit_precheck(self.db, records, out)
+        report = {**self.summary(), "file_precheck": precheck}
+        (out/"report.json").write_bytes(canonical(report))
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -561,32 +616,49 @@ def main(argv=None):
     sub=p.add_subparsers(dest="cmd",required=True)
     init=sub.add_parser("init");init.add_argument("--seeds",type=Path,required=True)
     imp=sub.add_parser("import-document");imp.add_argument("--input",type=Path,required=True)
-    imp.add_argument("--format",choices=("html","tei","text"),required=True);imp.add_argument("--source-url",required=True);imp.add_argument("--family",required=True)
+    imp.add_argument("--format",choices=("html","tei","text","file-descriptors"),required=True);imp.add_argument("--source-url",required=True);imp.add_argument("--family",required=True)
     run=sub.add_parser("run");run.add_argument("--providers",choices=PROVIDERS,nargs="+",required=True)
     run.add_argument("--max-requests",type=int,required=True);run.add_argument("--interval",type=float,default=4)
     run.add_argument("--max-depth",type=int,default=3);run.add_argument("--max-pages",type=int,default=2);run.add_argument("--max-children",type=int,default=6)
     run.add_argument("--user-agent",required=True);run.add_argument("--allow-public-catalog",action="store_true",required=True)
     ex=sub.add_parser("export");ex.add_argument("--out",type=Path,required=True)
+    bind=sub.add_parser("bind-local",help="Bind the local file census and successful download receipts")
+    bind.add_argument("--inventory",type=Path,required=True);bind.add_argument("--root",type=Path,required=True)
+    bind.add_argument("--receipt",type=Path,action="append",default=[])
+    check=sub.add_parser("check-files",help="Preflight file descriptors offline before acquisition")
+    check.add_argument("--input",type=Path,required=True);check.add_argument("--out",type=Path,required=True)
     raw=sub.add_parser("raw");raw.add_argument("--sha256",required=True);raw.add_argument("--out",type=Path,required=True)
     admit=sub.add_parser("admit");admit.add_argument("--proposal-id",required=True)
     sub.add_parser("status")
     a=p.parse_args(argv)
     f=Frontier(a.db)
     try:
-        if a.cmd=="init":f.init(json.loads(a.seeds.read_text(encoding="utf-8")));result=f.summary()
+        if a.cmd=="init":
+            with collector_lock(a.db):
+                f.init(json.loads(a.seeds.read_text(encoding="utf-8")));result=f.summary()
         elif a.cmd=="import-document":
-            with f.db:
+            with collector_lock(a.db), f.db:
                 doc=f.import_document(a.input,a.format,a.source_url,a.family)
             result={"document_id":doc,**f.summary()}
-        elif a.cmd=="admit":f.admit(a.proposal_id);result=f.summary()
+        elif a.cmd=="admit":
+            with collector_lock(a.db):
+                f.admit(a.proposal_id);result=f.summary()
         elif a.cmd=="run":
             # Reuse the existing OS-level lock used by the archive worker;
             # no Temporal dependency is needed for this collector.
-            from .locking import collector_lock
             with collector_lock(a.db):
                 result=f.run(providers=a.providers,limit=a.max_requests,interval=a.interval,
                     max_depth=a.max_depth,max_pages=a.max_pages,max_children=a.max_children,fetch=http_fetcher(a.user_agent))
-        elif a.cmd=="export":f.export(a.out);result=f.summary()
+        elif a.cmd=="bind-local":
+            with collector_lock(a.db):
+                result=bind_inventory(f.db,a.inventory,a.root,a.receipt)
+        elif a.cmd=="check-files":
+            with collector_lock(a.db):
+                result=write_precheck(f.db,(row for _,row in jsonl(a.input)),a.out)
+        elif a.cmd=="export":
+            with collector_lock(a.db):
+                f.export(a.out)
+            result=json.loads((a.out/"report.json").read_text(encoding="utf-8"))
         elif a.cmd=="raw":
             row=f.db.execute("SELECT bytes FROM bodies WHERE sha=?",(a.sha256,)).fetchone()
             if row is None:raise ValueError("unknown body hash")

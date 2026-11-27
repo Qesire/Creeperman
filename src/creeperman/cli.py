@@ -16,6 +16,17 @@ from .sources import FORMATS, records
 def main(argv=None):
     p=argparse.ArgumentParser(prog="creeperman")
     s=p.add_subparsers(dest="cmd",required=True)
+    av=s.add_parser("annual-cdx", help="validate locally reconciled exact hostname-years with full CDX pagination")
+    av.add_argument("--input", type=Path, required=True,
+                    help="JSONL fields: hostname, year, baseline_mask, local_qualified_mask, source_locator")
+    av.add_argument("--state", type=Path, required=True, help="the IA provider's shared local pacing/response SQLite")
+    av.add_argument("--max-requests", type=int, required=True,
+                    help="cumulative physical requests for this frame, including earlier runs")
+    av.add_argument("--interval", type=float, default=3.2)
+    av.add_argument("--user-agent", default="Creeperman/0.2 historical-research (+https://github.com/Qesire/Creeperman)")
+    av.add_argument("--allow-online", action="store_true", help="default is offline frame validation")
+    av.add_argument("--retry-failed", action="store_true",
+                    help="retry failed or interrupted requests within the budget; interrupted reservations still count")
     c=s.add_parser("census")
     for flag in ("baseline","audit","model","sources","out"):
         c.add_argument("--"+flag,type=Path,required=True)
@@ -75,6 +86,8 @@ def main(argv=None):
     fo.add_argument("--round-id",required=True)
     fo.add_argument("--limit",type=int,required=True)
     fo.add_argument("--batch-size",type=int,default=20)
+    fo.add_argument("--reuse-payloads",action="store_true",
+                    help="reuse digest-verified HTML for link discovery; cached bytes do not verify a new capture")
     eo=s.add_parser("export-observations")
     eo.add_argument("--store",required=True)
     eo.add_argument("--db",type=Path,required=True)
@@ -134,7 +147,11 @@ def main(argv=None):
     g.add_argument("--ref",required=True,help="JSON object reference")
     g.add_argument("--out",type=Path,required=True)
     a=p.parse_args(argv)
-    if a.cmd=="census":
+    if a.cmd=="annual-cdx":
+        from .annual import run
+        print(canonical(run(a.input, a.state, a.max_requests, a.interval, a.user_agent,
+                            a.allow_online, a.retry_failed)).decode(), end="")
+    elif a.cmd=="census":
         print(json.dumps(census(a.baseline,a.audit,a.model,a.sources,a.out),ensure_ascii=False,indent=2))
     elif a.cmd=="authority":
         print(canonical(audit_binding(a.audit,a.model)[0]).decode(),end="")
@@ -179,7 +196,9 @@ def main(argv=None):
             action=a.action;rows=(r for _,r in jsonl(a.input))
         else:
             action="lookup" if a.mode in ("fallback","expand-host") else a.mode
-            rows=followup_rows(a.db,a.authority,a.mode,a.provider,a.limit)
+            if a.reuse_payloads and a.mode!="replay":
+                p.error("--reuse-payloads requires --mode replay")
+            rows=followup_rows(a.db,a.authority,a.mode,a.provider,a.limit,reuse_payloads=a.reuse_payloads)
         for j in online_jobs(Store(a.store),rows,a.provider,action,a.authority,a.round_id,a.limit,a.batch_size):
             print(canonical(j).decode(),end="")
     elif a.cmd=="export-observations":
