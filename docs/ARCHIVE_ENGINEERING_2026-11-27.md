@@ -39,7 +39,7 @@ DMOZ 主目录的两个归档对象各有 1,048,293 字节。实收正文摘要�
    ) TO 'work/dmoz-host-years.parquet' (FORMAT parquet, COMPRESSION zstd);
    ```
 
-4. **按年求差。** 以确切主机和年度扣除基线及传入的已裁决账本。复现表中的本批贡献使用先前的 **44 项**账本，评估下一批则使用最新 **55 项**账本。基线外权重是可取得合格证据时的上限。进入结算还需逐条裁决。[DuckDB 差集入口](../src/creeperman/parquet_difference.py)
+4. **按年求差。** 以确切主机和年度扣除基线及传入的已裁决账本。复现表中的本批贡献使用先前的 **44 项**账本；评估下一批使用最新 **155 项**账本（见[下午完整版批次](DMOZ_ARCHIVE_EDITIONS_2026-11-27.md)）。基线外权重是可取得合格证据时的上限。进入结算还需逐条裁决。[DuckDB 差集入口](../src/creeperman/parquet_difference.py)
 
    ```sh
    python -m creeperman.parquet_difference --source WebBase work/webbase-nodes/hosts.parquet --source DMOZ work/dmoz-host-years.parquet --baseline-dir work/merge261121-3 --reviewed work/cumulative/reviewed.jsonl --model work/q2_tld_top_langs.json --audit audit/baseline_summary.json

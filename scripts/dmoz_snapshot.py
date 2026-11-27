@@ -22,7 +22,11 @@ def inflated_lines(path, stats):
     size = 0
     with path.open("rb") as src:
         while chunk := src.read(65536):
-            part = inflater.decompress(chunk)
+            try:
+                part = inflater.decompress(chunk)
+            except zlib.error as e:
+                stats["gzip_error"] = str(e)
+                break
             if inflater.unused_data:
                 raise ValueError("unexpected bytes after gzip member")
             if xml is not None:
@@ -50,16 +54,27 @@ def attr(element, local):
     return next((v for k,v in element.attrib.items() if k.rsplit("}",1)[-1]==local),None)
 
 
-def write_rows(path, receipt, out):
+def generated_year(path):
+    inflater = zlib.decompressobj(31)
+    with path.open("rb") as src:
+        head = inflater.decompress(src.read(65536))
+    m = re.search(br"<!--\s*Generated at (\d{4})-\d\d-\d\d .*? GMT", head)
+    if m is None:
+        raise ValueError(f"{path}: no Generated-at comment in header; cannot bind observation year")
+    return int(m.group(1))
+
+
+def write_rows(path, receipt, out, year_basis="capture"):
     with path.open("rb") as stream:
         payload_digest = base64.b32encode(hashlib.file_digest(stream, "sha1").digest()).decode("ascii")
     if (receipt["capture"]["digest"] != payload_digest or receipt["capture"]["statuscode"] != "200"
             or sha(path) != receipt["sha256"]):
         raise ValueError(f"unverified bytes: {path}")
-    stats = {"source_file":path.name, "source_sha256":receipt["sha256"], "capture_url":receipt["url"]}
+    stats = {"source_file":path.name, "source_sha256":receipt["sha256"], "capture_url":receipt["url"],
+             "year_basis":year_basis}
     counters = Counter()
     stamp = receipt["capture"]["timestamp"]
-    year = timestamp_year(stamp)
+    year = generated_year(path) if year_basis == "generated" else timestamp_year(stamp)
     output = out / (path.name + ".rows.jsonl")
     tmp = output.with_suffix(".tmp")
     block = None
@@ -125,8 +140,8 @@ def write_rows(path, receipt, out):
         if block is not None:
             counters["unfinished_nodes"] += 1
     tmp.replace(output)
-    stats.update(capture_year=year, counts=dict(counters), unique_hosts=len(all_hosts), rows_file=output.name,
-                 rows_sha256=sha(output))
+    stats.update(capture_year=timestamp_year(stamp), observation_year=year, counts=dict(counters),
+                 unique_hosts=len(all_hosts), rows_file=output.name, rows_sha256=sha(output))
     return stats
 
 
@@ -218,7 +233,8 @@ def recover_attributes(source, out, meta):
             counts["also_in_closed_nodes"]+=1
             continue
         rec=dict(source_file=source.name,source_sha256=meta["source_sha256"],source_line=group[1],
-                 attribute_line=n,byte_offset=match.start(),node=name,topic=group[2],year=meta["capture_year"],
+                 attribute_line=n,byte_offset=match.start(),node=name,topic=group[2],
+                 year=meta.get("observation_year",meta["capture_year"]),
                  hostname=host,attribute_mode=mode)
         if mode=="strict_xml":
             rec["original_url"]=original_url
@@ -234,7 +250,7 @@ def recover_attributes(source, out, meta):
     return extra, dict(counts)
 
 
-def extract(sources, receipts, output, boundary_limit):
+def extract(sources, receipts, output, boundary_limit, year_basis="capture"):
     if boundary_limit < 0:
         raise ValueError("expected a non-negative boundary byte limit")
     if len({p.name for p in sources}) != len(sources):
@@ -243,7 +259,7 @@ def extract(sources, receipts, output, boundary_limit):
         results = []
         with (stage / "boundary-attributes.jsonl").open("w", encoding="utf8") as sink:
             for source in sources:
-                stats = write_rows(source, receipts[source.name], stage)
+                stats = write_rows(source, receipts[source.name], stage, year_basis)
                 if stats["xml_complete"]:
                     stats["boundary_status"] = "complete_xml"
                 elif max(stats["uncompressed_bytes"],source.stat().st_size) > boundary_limit:
@@ -266,5 +282,7 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path, required=True, help="new directory for local observations and coverage")
     parser.add_argument("--boundary-limit", type=int, default=64 << 20,
                         help="byte limit for the in-memory recovery pass on damaged XML (default: 64 MiB)")
+    parser.add_argument("--year-basis", choices=("capture", "generated"), default="capture",
+                        help="observation year from capture timestamp (default) or the header Generated-at date")
     args = parser.parse_args()
-    extract(args.sources, json.loads(args.receipts.read_bytes()), args.out, args.boundary_limit)
+    extract(args.sources, json.loads(args.receipts.read_bytes()), args.out, args.boundary_limit, args.year_basis)

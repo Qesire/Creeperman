@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-27",
+  "scope": "Publisher-archived complete DMOZ editions at rdf.dmoz.org/rdf/archive/. Local exact-host/year review; organizer acceptance pending.",
+  "baseline": "merge261121-3",
+  "authority": "ed4fe675daf7a3e3ff09d548a2bd0556bb4856e1df657d064d3936fb3122dbaa",
+  "calculator_sha256": "2488335c79977002cffecf394cf1845b80d2dd89ed48f3143e3555b883c9e411",
+  "model_sha256": "480d86bc287ef2c2bc80be62ecffe6eecba950dddf07bb9d3f15e6c2c268eb07",
+  "iana_tld_list_sha256": "f6c020fd0a4677cdbf2e174f521de1b7db32fbb67a3d7eea46f8704cec8bae5b",
+  "editions": [
+    {
+      "source_file": "content-20010122.rdf.u8.gz",
+      "archive_path_date": "2001-01-22",
+      "source_sha256": "507de5d57da33c9312b4e331e0d0d2be55e158adf16642f5a79fddc7d45dbc28",
+      "capture_url": "https://web.archive.org/web/20100705094942id_/http://rdf.dmoz.org/rdf/archive/2001-01-22/content.rdf.u8.gz",
+      "capture_timestamp": "20100705094942",
+      "cdx_sha1_base32": "UPV4CT45A36DUB2ZPF632RFH5DCE6ME4",
+      "bytes": 139453647,
+      "generated_gmt": "2001-01-22 09:01:18",
+      "gzip_complete": true,
+      "xml_complete": false,
+      "distinct_hosts": 1082882,
+      "invalid_xml_nodes": 34
+    },
+    {
+      "source_file": "content-20010616.rdf.u8.gz",
+      "archive_path_date": "2001-06-16",
+      "source_sha256": "8ae7593ab0252a146bf4852c3d81e9a4eeebcdff40189ef2a64391d4a57a6f0a",
+      "capture_url": "https://web.archive.org/web/20100705051135id_/http://rdf.dmoz.org/rdf/archive/2001-06-16/content.rdf.u8.gz",
+      "capture_timestamp": "20100705051135",
+      "cdx_sha1_base32": "PIFYDA5ED6TAY7DKNJ5NCSD6M3QRHW4Q",
+      "bytes": 155647371,
+      "generated_gmt": "2001-06-16 03:01:07",
+      "gzip_complete": false,
+      "xml_complete": false,
+      "distinct_hosts": 995063,
+      "invalid_xml_nodes": 2,
+      "gzip_error": "Error -3 while decompressing data: too many length or distance symbols",
+      "intact_uncompressed_bytes": 626500839
+    },
+    {
+      "source_file": "content-20011020.rdf.u8.gz",
+      "archive_path_date": "2001-10-20",
+      "source_sha256": "2bd76b31c6da538deb4f6e2396684baff3fbbb4be8c1d44b47698c5a236b29e0",
+      "capture_url": "https://web.archive.org/web/20100705101420id_/http://rdf.dmoz.org/rdf/archive/2001-10-20/content.rdf.u8.gz",
+      "capture_timestamp": "20100705101420",
+      "cdx_sha1_base32": "SP5UUDNOD4Q6MNDRYPJQFCP34XZ5EWEP",
+      "bytes": 170292163,
+      "generated_gmt": "2001-10-20 03:02:37",
+      "gzip_complete": true,
+      "xml_complete": false,
+      "distinct_hosts": 1394966,
+      "invalid_xml_nodes": 10
+    },
+    {
+      "source_file": "kt-content-20001213.rdf.u8.gz",
+      "archive_path_date": "2000-12-13",
+      "source_sha256": "f0b73a1c210399a0b0440d04f2b53b320596f4301aab97eaadf9c79035755fe7",
+      "capture_url": "https://web.archive.org/web/20060512012844id_/http://rdf.dmoz.org:80/rdf/archive/2000-12-13/kt-content.rdf.u8.gz",
+      "capture_timestamp": "20060512012844",
+      "cdx_sha1_base32": "BJG3KMEY6T7UBC4VEX7RDTUSEF7TYREN",
+      "bytes": 469162,
+      "generated_gmt": "2000-12-13 00:31:46",
+      "gzip_complete": true,
+      "xml_complete": true,
+      "distinct_hosts": 3928,
+      "invalid_xml_nodes": 0
+    }
+  ],
+  "union_host_years": 1525310,
+  "outside_baseline_unsettled_before_review": 101,
+  "quarantined_invalid_tld": 1,
+  "round": {
+    "count": 100,
+    "eed": "63.2063",
+    "by_year": {
+      "2000": 99,
+      "2001": 1
+    }
+  },
+  "previous": {
+    "count": 55,
+    "eed": "37.7812",
+    "ledger_sha256": "626d5ff02b818ff54c69009c4bf50a118fca6c28790efd9a49bc1fbfcdbf4a57"
+  },
+  "cumulative": {
+    "count": 155,
+    "eed": "100.9875"
+  },
+  "cumulative_ledger_sha256": "c25be32a01b6818685230d8ef89f6aab27a6b601f7a5093481e42c2518a4033f",
+  "evidence_standard_note": "All 2000 entries have a complete Topic plus a complete titled/described ExternalPage. One 2001 entry was adjudicated under task brief IV P46(2) directory-link minimum (complete Topic with stable catid; no ExternalPage exported in the edition); the deviation from the two-location prefix-batch standard is documented in that ledger row.",
+  "remaining_gaps": [
+    "2000 main directory: no complete edition publicly captured; the two dmoz.org/rdf/ captures remain 1 MiB truncated prefixes",
+    "1999 main directory: no public capture of the listed content.rdf.gz",
+    "2001-06-16 edition: gzip stream corrupted at rest in IA; 626500839-byte intact prefix recovered (~78%)"
+  ]
+}
