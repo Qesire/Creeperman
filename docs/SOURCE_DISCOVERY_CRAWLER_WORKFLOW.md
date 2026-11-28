@@ -1,5 +1,7 @@
 # Creeperman：自主资料发现爬虫工作流
 
+2026-11-28 实现进展：已在现有前沿应用策略、实际读取 PC Press 原件并完成 URL 映射与任务账本接入，新增事前声明到 RSIforme 的回执导出。当前执行入口见[媒体读取与反馈接合](MEDIA_AND_FEEDBACK_IMPLEMENTATION_2026-11-28.md)；下文保留资料发现层的机制、命令与原始验收范围。
+
 本文件是 2026-11-25 用户要求暂停外联、优先从学术文献与国际项目形成发现工作流之后的执行入口。取代 ACQUISITION_PRIORITY 的外联优先顺序，保留其已核实原件线索。不要发邮件、提交申请、购买数据、重复遍历旧 ISC/辅助年交集或恢复已停止的候选请求。当前核心剩余目标仍以冻结基线与本地结算为准；新模块不产生合格 EED。
 
 ## 1. 工作对象改变：发现资料对象，不是再扩大 hostname 池
@@ -44,7 +46,7 @@ ACHE 固定版本 326f06779eb3d425deb48f5fe804942828298a99 的具体代码：
 - [Zenodo REST](https://developers.zenodo.org/) Records：search/detail、文件名/大小/checksum/links 与 related_identifiers。
 - IA [item search](https://archive.org/developers/item-search-apis.html) 和 [MDAPI](https://archive.org/developers/md-read.html)：advancedsearch.php 的有限结果窗口及已观察 identifier 的 metadata/files。这里是 archive.org 的**资料物件**目录，而非 web.archive.org 的 hostname CDX 查询；不自动恢复先前被 503 中止的候选试验。
 
-未在本环境获得 DataCite、Zenodo 和 IA 实际 API 响应（Web 读取失败），因此当前验证依赖文档与固定响应；本地真实首批需确认当前公开接口、速率、返回结构及访问许可。OpenAlex、OpenAIRE Graph、re3data、OAI-PMH 等可在后续根据实得收益接入，不虚构已经运行的适配器。
+首版未取得 DataCite、Zenodo 和 IA 的实际 API 响应。2026-11-28 已实际完成三个 IA 物件 metadata 请求，并据此读取 PC Press ISO 的选定原始成员；见[真实运行记录](MEDIA_AND_FEEDBACK_IMPLEMENTATION_2026-11-28.md)。DataCite、Zenodo 仍未完成真实接口运行。OpenAlex、OpenAIRE Graph、re3data、OAI-PMH 等可在后续根据实得收益接入，不虚构已经运行的适配器。
 
 入口 config/source_frontier_seeds.json：原始爬网、HTTP 测量、历史目录、磁盘介质，英/法/德/西/葡/日/中区域检索。历史年份出现在检索内容而非把论文 publicationYear 限定于 1996–2001；后来研究可能公开更早物件。已知 Zenodo/DMOZ item 仅用于具体文件清单回收，若本地已处理则从 seed 清单去掉，不重开。
 
@@ -57,7 +59,7 @@ ACHE 固定版本 326f06779eb3d425deb48f5fe804942828298a99 的具体代码：
 
 30/4/3/2/6 仅为演示 CLI 的有限窗口，非实际配额或预登记的实验样本数。先按本地实际服务条件选择适用 provider 和请求预算。archive.org 如获准使用可在独立有限窗口添加 ia；同一提供者不运行两个获取进程以放大预算。401/403 留为 access block，429/503 停止该提供者并尊重 Retry-After；没有自动盲重试。started 后进程退出属于未决，保留 raw/attempt，不自动重复请求。分页只是有限发现，不是全库检索完备证明。当前一个活动进程使用同一个 DB 锁；跨机 quota/租约未实施。
 
-任务选择先按家族已尝试次数保持探索多样性，再按类型、关键词/年代提示和深度排序；不是训练模型或实测成功概率。每个返回页保存全部观察、候选扩展 proposals；只准入有限子任务，其余保留供审查。可将明确高价值 proposal 加入：
+默认任务选择先按家族已尝试次数保持探索多样性，再按类型、关键词/年代提示和深度排序。2026-11-28 新增 `--policy`，可加载 RSIforme 导出的排序，并在完整审核后使用路径反馈；未验证的启动策略仍不是实测成功概率。每个返回页保存全部观察、候选扩展 proposals；只准入有限子任务，其余保留供审查。可将明确高价值 proposal 加入：
 
     python -m creeperman.source_frontier --db work/source-frontier.sqlite admit --proposal-id ID
 
@@ -125,4 +127,4 @@ robots GET 也占预算，未知规则/解析失败或访问阻断停止该主�
 
 tests/test_source_frontier.py 固定样例验证 IA search→item→files、四种 JSON 契约、DOI 关系、跨节点去重、fan-out 余项留存、暂停/重启的请求预算、文献相对链接、robots 与窄 scope、无历史日期误判。CI 与原有回归一并运行。真实接口与竞赛材料仅由本地 Agent 在合法、预算明确的窗口进行实际访问。原文阅读：Focused Crawling PDF 已取得首页截图；ACHE/Tempas 文本可读但截图返回 cache miss。学术结论与本实现迁移边界见上表。
 
-本轮不发邮件、不申请受限数据、不购买服务，不下载大型语料、不发送候选、不报告新 EED。下一阶段不再把主要时间花在生成来源列表，而是运行有界发现循环，交付可复核的实际新资料对象和净增结果。
+邮件、受限数据申请与购买仍暂停。当前已通过有界 Range 读取真实原件，保持不发送未批准的历史候选查询；尚无新的 EED 裁决。继续消费明确未处理的原件范围，以已核定 URL 映射、真实日期声明和净增审核反馈推进，不重复生成来源名单。

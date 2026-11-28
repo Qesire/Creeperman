@@ -1,0 +1,163 @@
+{
+  "schema": "media-feedback-implementation-audit-v1",
+  "date": "2026-11-28",
+  "based_on": {
+    "Creeperman": "d5613fbcf0ef68ccf600284f3551d5b25004f099",
+    "RSIforme": "92a86fbc1ea0bb034d8fedfc6c363761b08d7466"
+  },
+  "original_acquisition": {
+    "object_url": "https://archive.org/download/pc-press-internet-cd/PC_PRESS.ISO",
+    "declared_size": 522053632,
+    "coverage": "partial-container",
+    "full_container_hash_verified": false,
+    "requests_cumulative": 27,
+    "response_body_bytes_cumulative": 6815744,
+    "cost_includes_initial_eager_directory_trial": true,
+    "initial_stop": "operator_pause_to_replace_eager_directory_loading",
+    "complete_members": 4,
+    "range_receipt_sha256": "f1197ac3000904e379aeb86eda53fe80d474889ed608ccd9643fb76ec052a1df",
+    "member_manifest_sha256": "10c565625d6f9629a81e02ed13818f74eb7d8438a2732c66101eb915e66f1445",
+    "network_after_bounded_acquisition": 0,
+    "cache_replay": {
+      "network_allowed": false,
+      "cost": {
+        "bytes": 0,
+        "requests": 0,
+        "wall_millis": 57
+      },
+      "members_verified": 4,
+      "distinct_chunks_touched": 6,
+      "block_bytes": 262144,
+      "touched_chunk_bytes": 1572864
+    }
+  },
+  "real_mapping": {
+    "format": "pcpress-lis",
+    "mapping_records": 75,
+    "unsupported_mapping_rows": 0,
+    "html_pages": 2,
+    "observations": 53,
+    "exact_hostnames": 3,
+    "missing_mapped_bodies": 73,
+    "source_page_hints": 2,
+    "all_years_null": true,
+    "all_provenance_retained_in_collector": true,
+    "cost": {
+      "bytes": 10134,
+      "requests": 0,
+      "wall_millis": 17
+    },
+    "cost_bytes_scope": "local_original_member_reads",
+    "cache_replay": {
+      "syntax_bodies_parsed": 0,
+      "syntax_cache_hits": 2,
+      "same_three_output_hashes": true,
+      "cost": {
+        "bytes": 10134,
+        "requests": 0,
+        "wall_millis": 9
+      }
+    },
+    "qualification": "not_run",
+    "baseline_difference": "not_run",
+    "new_reviewed_host_years": 0,
+    "net_qualified_eed": null,
+    "report_sha256": "1ca154046e48871d8697d33b48fa3be37049d1ca06e78ade254878dd52af646a",
+    "output_sha256": {
+      "mappings.jsonl": "2303e4d5ddf851e81bec7e104c06bab8884f17b9d006d00e33dbfb3cdd16b046",
+      "observations.jsonl": "7d37570fb8a1618bdf7ada16b5455729cb24793c450d92a2560d0fd4bba6bee7",
+      "review.jsonl": "9715941bdc6c7334cf7c3946e5937165fa1e5cf17ee69f1344fb710df14a4f32"
+    }
+  },
+  "real_scoped_bridge_check": {
+    "schema": "real-media-scope-bridge-check-v1",
+    "actual_output_hashes_verified": true,
+    "predeclared_scope_checked": true,
+    "operation_complete": true,
+    "completion_semantics": "selected_mapping_files_and_available_bound_html_classified",
+    "pages_processed": 2,
+    "observations": 53,
+    "mapped_members_not_extracted": 73,
+    "syntax_cache_hits": 2,
+    "syntax_bodies_parsed": 0,
+    "cost": {
+      "bytes": 10134,
+      "requests": 0,
+      "wall_millis": 17
+    },
+    "recorded_epoch": false,
+    "baseline_and_prior_bound": false,
+    "production_eed": null,
+    "report_sha256": "36c4009c038bcce11285cc74043f609aedc1d7f0cf1257be8b061280943a12c0"
+  },
+  "frontier_choice_benchmark": {
+    "schema": "discovery-ranking-benchmark-v1",
+    "data_kind": "synthetic_fixture",
+    "candidates": 1000,
+    "repeats": 3,
+    "same_choice_and_features": true,
+    "scope": "full Frontier.choose; exploitation; local in-memory SQLite",
+    "network_requests": 0,
+    "production_eed": "0",
+    "reference": {
+      "median_seconds": 0.12046808800005238,
+      "sql_statements": 30003
+    },
+    "batched": {
+      "median_seconds": 0.08403482399990025,
+      "sql_statements": 9007
+    },
+    "measured_speedup": 1.4335495960602638
+  },
+  "verification": {
+    "creeperman_offline": {
+      "command": "python -m pytest -q tests --ignore=tests/test_temporal.py",
+      "passed": 129,
+      "failed": 0,
+      "seconds": 2.79
+    },
+    "creeperman_cli": {
+      "steps": 6,
+      "all_exit_zero": true,
+      "data_kind": "synthetic_fixture",
+      "network_requests": 0
+    },
+    "real_observations_cli": {
+      "steps": [
+        "discovery-job",
+        "run-local",
+        "collect"
+      ],
+      "all_exit_zero": true,
+      "records": 53,
+      "exact_hostnames": 3
+    },
+    "rsiforme_unittest": {
+      "total": 128,
+      "passed": 124,
+      "skipped": 4,
+      "failed": 0,
+      "seconds": 18.553,
+      "cross_repository_tests_executed": true,
+      "skips": "optional pinned native RSI-Harness dependency"
+    },
+    "rsiforme_cpu_demo": {
+      "exit_code": 0,
+      "wall_seconds": 4.9,
+      "prewritten_candidates": 3,
+      "evaluations": 4,
+      "model_calls": 0
+    },
+    "recorded_production_epoch_evaluated": false,
+    "new_temporal_cluster_run": false
+  },
+  "limits": [
+    "No complete production baseline B or cumulative reviewed A was available in this session.",
+    "Original acquisition and early mapping runs were not retrospectively declared as recorded epoch actions.",
+    "The real scoped bridge check verifies predeclared inputs and actual output files, not a B/A-bound epoch evaluation.",
+    "Mapping completion covers selected mapping files and available bound HTML, not the whole CD or all mapped bodies.",
+    "Bytes count response bodies or explicitly labelled local reads; HTTP/TLS overhead is excluded.",
+    "The 1000-candidate benchmark uses a fixed synthetic queue; its timing is not crawl or EED throughput.",
+    "No deployment, candidate queries, mail or formal competition submission was performed."
+  ]
+}

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS page_scopes(id TEXT PRIMARY KEY,body TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS page_tasks(url TEXT PRIMARY KEY,scope TEXT NOT NULL,depth INTEGER NOT NULL,
  priority INTEGER NOT NULL,state TEXT NOT NULL DEFAULT 'queued',document_id TEXT);
 CREATE TABLE IF NOT EXISTS page_edges(parent TEXT,child TEXT,relation TEXT,PRIMARY KEY(parent,child,relation));
+CREATE INDEX IF NOT EXISTS page_edges_child ON page_edges(child,parent);
 CREATE TABLE IF NOT EXISTS page_requests(id INTEGER PRIMARY KEY AUTOINCREMENT,
  url TEXT NOT NULL,host TEXT NOT NULL,scope TEXT NOT NULL,kind TEXT NOT NULL,
  started TEXT NOT NULL,ended TEXT,status TEXT NOT NULL,http_status INTEGER,sha TEXT,headers TEXT,error TEXT);
@@ -241,10 +242,10 @@ class PageFrontier:
               AND NOT EXISTS (SELECT 1 FROM reusable_pages r WHERE r.url=t.url)
               ORDER BY spent,priority DESC,depth,url""",(max_depth,))
             eligible=[]
+            cooldowns=dict(self.db.execute("SELECT host,until_epoch FROM page_cooldown"))
             for r in candidates:
                 h=urlsplit(r["url"]).hostname
-                cool=self.db.execute("SELECT until_epoch FROM page_cooldown WHERE host=?",(h,)).fetchone()
-                if h not in excluded and (not cool or cool[0]<=time.time()):
+                if h not in excluded and cooldowns.get(h,0)<=time.time():
                     eligible.append(r)
                     if not self.f.policy.enabled:break
             with self.db:

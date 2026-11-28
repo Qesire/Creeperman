@@ -370,6 +370,8 @@ CREATE TABLE IF NOT EXISTS tasks(id TEXT PRIMARY KEY, provider TEXT NOT NULL, ac
  state TEXT NOT NULL DEFAULT 'queued', created INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS edges(parent TEXT NOT NULL, child TEXT NOT NULL, relation TEXT NOT NULL,
  PRIMARY KEY(parent,child,relation));
+CREATE INDEX IF NOT EXISTS source_edges_child ON edges(child,parent);
+CREATE INDEX IF NOT EXISTS source_task_queue ON tasks(state,provider,depth);
 CREATE TABLE IF NOT EXISTS resources(id TEXT PRIMARY KEY, body TEXT NOT NULL, rank INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS observations(parent TEXT NOT NULL, resource_id TEXT NOT NULL,
  locator TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(parent,resource_id,locator));

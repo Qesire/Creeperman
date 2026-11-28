@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS discovery_nodes(
  context TEXT NOT NULL,features TEXT NOT NULL,state TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS discovery_edges(parent TEXT,child TEXT,
  PRIMARY KEY(parent,child));
+CREATE INDEX IF NOT EXISTS discovery_edges_child ON discovery_edges(child,parent);
 CREATE TABLE IF NOT EXISTS discovery_choices(
  seq INTEGER PRIMARY KEY AUTOINCREMENT,node_id TEXT NOT NULL,policy_sha TEXT NOT NULL,
  mode TEXT NOT NULL,features TEXT NOT NULL);
@@ -58,7 +59,13 @@ CREATE TABLE IF NOT EXISTS discovery_batch_keys(
 CREATE TABLE IF NOT EXISTS discovery_training(
  batch_id TEXT,node_id TEXT,label INTEGER NOT NULL,credit REAL NOT NULL,tokens TEXT NOT NULL,
  PRIMARY KEY(batch_id,node_id));
+CREATE INDEX IF NOT EXISTS discovery_training_node ON discovery_training(node_id,batch_id);
 CREATE TABLE IF NOT EXISTS discovery_terms(term TEXT PRIMARY KEY,pos REAL NOT NULL,neg REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS discovery_batch_receipts(
+ batch_id TEXT PRIMARY KEY,report TEXT NOT NULL,reviewed_sha256 TEXT NOT NULL,records_sha256 TEXT);
+CREATE TABLE IF NOT EXISTS discovery_reviewed_records(
+ batch_id TEXT,hostname TEXT,year INTEGER,evidence_id TEXT,record TEXT NOT NULL,
+ PRIMARY KEY(batch_id,hostname,year,evidence_id));
 """
 
 
@@ -109,6 +116,8 @@ class LivePolicy:
         columns={r[1] for r in self.db.execute("PRAGMA table_info(discovery_batches)")}
         if "scope_id" not in columns:self.db.execute("ALTER TABLE discovery_batches ADD COLUMN scope_id TEXT")
         if "complete" not in columns:self.db.execute("ALTER TABLE discovery_batches ADD COLUMN complete INTEGER NOT NULL DEFAULT 0")
+        if "records_sha256" not in {r[1] for r in self.db.execute("PRAGMA table_info(discovery_batch_receipts)")}:
+            self.db.execute("ALTER TABLE discovery_batch_receipts ADD COLUMN records_sha256 TEXT")
         self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS discovery_completed_scope ON discovery_batches(node_id,scope_id) WHERE prior=0 AND complete=1")
         if policy is not None:
             if isinstance(policy, (str, Path)):
@@ -218,7 +227,8 @@ class LivePolicy:
         candidates = [(r, self._register_row(kind, r)) for r in rows]
         candidates = [(r,n) for r,n in candidates if n["state"] not in ("reviewed_complete","closed_exact_operation","consumed")]
         if not candidates:return None
-        valued = [(r, n, self._features(n, r)) for r, n in candidates]
+        from .discovery_rank import batch_features
+        valued = batch_features(self, candidates)
         count = self.db.execute("SELECT count(*) FROM discovery_choices").fetchone()[0]
         explore = (count + 1) % self.config["explore_every"] == 0
         if explore:
@@ -297,6 +307,7 @@ class LivePolicy:
             if counts[year] != report["new_by_year"][str(year)]:
                 raise ValueError("settlement annual count mismatch")
         reviewed = {}
+        all_reviewed = {}
         for _, record in jsonl(directory / "reviewed_decisions.jsonl"):
             if (record.get("validation_status") != "verified_web_year"
                     or record.get("authority") != authority["id"]
@@ -304,6 +315,7 @@ class LivePolicy:
                     or not record.get("reviewer") or not record.get("reason") or not record.get("evidence_id")):
                 raise ValueError("unreviewed or mismatched settlement decision")
             key = record["hostname"], record["year"]
+            all_reviewed[(*key,record["evidence_id"])] = record
             if key in keys:
                 reviewed[key] = record
         if set(reviewed) != keys:
@@ -323,6 +335,10 @@ class LivePolicy:
                 raise ValueError("the same settlement cannot be reassigned or reused as new work")
             if not prior and (existing["scope_id"]!=scope_id or any(existing[k]!=cost[k] for k in cost)):
                 raise ValueError("a completed receipt's scope and measured cost are immutable")
+            # Older databases retained only summary rewards. A freshly validated
+            # original settle output can backfill its exact, immutable records.
+            with self.db:
+                self._retain_settlement(batch_id,report,directory,all_reviewed)
             return {"idempotent": True, **dict(existing)}
         if prior and self.db.execute("SELECT 1 FROM discovery_batches WHERE prior=0 LIMIT 1").fetchone():
             raise ValueError("bind the entire cumulative prior ledger before importing any new rewards")
@@ -343,6 +359,7 @@ class LivePolicy:
             self.db.execute("INSERT INTO discovery_batches VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                             (batch_id, node_id, int(prior), receipt_sha, cost["requests"], cost["bytes"],
                              cost["wall_millis"], str(eed), len(keys), len(new),scope_id,int(prior or complete)))
+            self._retain_settlement(batch_id,report,directory,all_reviewed)
             if not prior:
                 positive = int(eed > 0)
                 decay = self.config["path_decay"] if self.config else DEFAULT["path_decay"]
@@ -364,6 +381,19 @@ class LivePolicy:
                 self.state(node_id,"reviewed_complete")
         return {"idempotent": False, "batch_id": batch_id, "prior": prior, "qualified_count": len(keys),
                 "new_count": len(new), "net_eed": str(eed), "path_training": not prior}
+
+    def _retain_settlement(self,batch_id,report,directory,records):
+        record_hash=hashlib.sha256()
+        for key in sorted(records):record_hash.update(canonical(records[key]))
+        retained = ((directory/"report.json").read_bytes().decode("utf-8"),
+                    sha(directory/"reviewed_decisions.jsonl"),record_hash.hexdigest())
+        old=self.db.execute("SELECT report,reviewed_sha256,records_sha256 FROM discovery_batch_receipts WHERE batch_id=?",(batch_id,)).fetchone()
+        if old and (tuple(old[:2])!=retained[:2] or old[2] is not None and old[2]!=retained[2]):
+            raise ValueError("retained settlement receipt changed")
+        self.db.execute("INSERT OR IGNORE INTO discovery_batch_receipts VALUES(?,?,?,?)",(batch_id,*retained))
+        self.db.execute("UPDATE discovery_batch_receipts SET records_sha256=? WHERE batch_id=? AND records_sha256 IS NULL",(retained[2],batch_id))
+        self.db.executemany("INSERT OR IGNORE INTO discovery_reviewed_records VALUES(?,?,?,?,?)",
+            ((batch_id,h,y,e,canonical(r).decode()) for (h,y,e),r in records.items()))
 
     def summary(self):
         amounts = [Decimal(r[0]) for r in self.db.execute("SELECT net_eed FROM discovery_batches WHERE prior=0")]

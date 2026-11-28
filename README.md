@@ -4,7 +4,17 @@
 
 本项目面向 Internet Digital Ark：持续发现历史主机名，为每一个入选的 hostname-year 保留确切的网站证据，形成可供后续历史网页采集使用的年度清单，并用来源收益与失败记录改进下一轮发现策略。
 
-## 2026-11-28：真实前沿与 RSIforme 已接合
+## 2026-11-28：已读取原件，并接通执行回执反馈
+
+PC Press 1996 光盘已按范围取得 **2 份原始 INDEX.LIS 与 2 份 HTML**：解析 75 条原 URL 映射，生成 53 条线索，涉及 3 个 exact hostname，并实际通过 `discovery-job → run-local → collect`。53 条均保留容器、成员、映射及日期声明；尚未进行本地 B/A 差集或网站年度裁决，新增 EED 未评估。
+
+新增 ISO 按需读取、持久分块缓存、原件 URL 映射及 HTML 语法缓存。原件获取累计 **27 次请求、6.5 MiB**，包含首次全目录读取的试行成本；优化后所选四个成员只触达 1.5 MiB 缓存块，断网复放一致。前沿 1,000 候选的完整选择实测由约 120 ms 降至 84 ms，选择结果不变。Creeperman 的事前声明、实际回执和审核记录现可导出到 RSIforme，并真实调用其 prepare/evaluate；发现操作完成不冒充网站取证完成。
+
+- [本轮实现、实物运行、优化与继续执行](docs/MEDIA_AND_FEEDBACK_IMPLEMENTATION_2026-11-28.md)
+- [公开运行汇总](audit/media_feedback_20261128.json)
+- 安装原件读取依赖：`python -m pip install -e ".[media,source,test]"`。
+
+## 2026-11-28 前一阶段：真实前沿与 RSIforme 接合
 
 现有目录与页面执行器已经读取 RSIforme 导出的策略，保存 URL/锚文本/上下文及真实发现路径；完整裁决后按累计 A 和 exact hostname-year 唯一去重，反馈路径收益并重排下一批任务。具体起点已落为 **4 个资料家族、7 个版次原件**，库存未知保持待核对。
 

@@ -14,6 +14,7 @@ test = ["pytest>=8,<10"]
 archive = ["warcio>=1.7,<2"]
 source = ["protego>=0.3,<1"]
 parquet = ["duckdb>=1.2,<3", "pyarrow>=18"]
+media = ["pycdlib>=1.22,<2"]
 
 [project.scripts]
 creeperman = "creeperman.cli:main"
