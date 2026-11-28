@@ -1,6 +1,6 @@
 {
   "schema": "source-registry-v1",
-  "checked_date": "2026-11-24",
+  "checked_date": "2026-11-28",
   "scope": "Documented entry points, not downloaded material or proof of residual capacity. Use only approved source artifacts.",
   "sources": [
     {
@@ -93,7 +93,7 @@
       "origin_family": "odp-directory",
       "priority": "residual-only",
       "documentation": "https://web.archive.org/web/20010610104128id_/http://dmoz.org:80/rdf/",
-      "contract": "Two August 2000 archived main-file prefixes and two complete 2001 Kids & Teens editions were reconciled. The complete core-year main directories remain unmeasured. Match original URL, release, capture time, payload digest and gzip completeness before reusing bytes.",
+      "contract": "2026-11-27 audit processed January and October 2001 main editions, the recoverable 626500839-byte prefix of the corrupted June 2001 main edition, and the complete 2000-12-13 Kids & Teens edition. 100 new host-years, 63.2063 EED in that round. Do not reprocess the same bytes and operation. Remaining gaps: full 2000 main, 1999 main, and damaged June 2001 tail; see audit/archive_results_20261127_dmoz_full.json. Complete gzip is not complete XML; preserve recorded malformed-node exclusions.",
       "role": "residual"
     },
     {
@@ -112,7 +112,8 @@
       "priority": "P1",
       "documentation": "https://archive95.net/sources/",
       "contract": "Use original media, raw URL mappings, dates and transformation lineage; normalized presentation is not exact host identity.",
-      "role": "discovery"
+      "role": "discovery",
+      "bootstrap_manifest": "config/discovery_bootstrap.json"
     },
     {
       "id": "pandora",

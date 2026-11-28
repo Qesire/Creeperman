@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-28",
+  "creeperman_offline": {
+    "command": "python -m pytest -q tests --ignore=tests/test_temporal.py",
+    "passed": 81,
+    "failed": 0,
+    "seconds": 1.77
+  },
+  "creeperman_cli_smoke": {
+    "steps": [
+      "make_fixture",
+      "census",
+      "discovery-job",
+      "run-local",
+      "collect",
+      "plan"
+    ],
+    "all_return_codes": 0,
+    "data": "synthetic"
+  },
+  "rsiforme_full": {
+    "command": "PYTHONPATH=src python -B -m unittest discover -s tests -v",
+    "total": 128,
+    "passed": 124,
+    "skipped": 4,
+    "failed": 0,
+    "seconds": 17.15
+  },
+  "cross_repository_bridge": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "seconds": 1.378,
+    "data": "synthetic"
+  },
+  "temporal_live": "not_run_in_this_session",
+  "model_research_worker": "not_run",
+  "new_eed": "0",
+  "qualification": "Contract and integration checks do not establish production yield."
+}

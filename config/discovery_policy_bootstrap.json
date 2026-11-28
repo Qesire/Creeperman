@@ -1,0 +1,48 @@
+{
+  "explore_every": 5,
+  "order_by": [
+    {
+      "direction": "desc",
+      "field": "local_available"
+    },
+    {
+      "direction": "desc",
+      "field": "path_score"
+    },
+    {
+      "direction": "desc",
+      "field": "arm_yield"
+    },
+    {
+      "direction": "desc",
+      "field": "static_priority"
+    },
+    {
+      "direction": "asc",
+      "field": "depth"
+    },
+    {
+      "direction": "asc",
+      "field": "input_order"
+    }
+  ],
+  "path_decay": 0.5,
+  "provenance": {
+    "data_kind": "prior",
+    "online_validation_status": "not_evaluated",
+    "policy_id": "rsif-live-ca2fd13e4e7b852fb3f5dc5c",
+    "production_increment_claimed": false,
+    "reason": "Apply researched original-object seeds to bounded real source frontier; reward unknown until private baseline and cumulative ledger are bound.",
+    "replay_scope": "not_evaluated",
+    "runtime_extension": {
+      "explore_every": 5,
+      "path_decay": 0.5,
+      "status": "unvalidated"
+    },
+    "runtime_settings_sha256": "ae940775f8b9514f3b5da72ac0852ba8cac3ae033685567101164abb08c97c84",
+    "source_policy_sha256": "f838ef87a334251cfbcb5568a56d7a84f39bdce14b1992ef471a14c9a27bd2c6",
+    "status": "unvalidated_bootstrap_prior",
+    "transfer_scope": "same-named ordering fields; live features and scheduling are a new context"
+  },
+  "schema": "creeperman-live-policy-v1"
+}

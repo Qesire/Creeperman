@@ -1,0 +1,253 @@
+{
+  "schema": "discovery-bootstrap-v1",
+  "checked_date": "2026-11-28",
+  "purpose": "Researched public original objects. No residual capacity or historical website qualification is asserted. Initialize existing source_pages/source_frontier, then precheck local inventory before acquiring original containers.",
+  "seeds": [
+    {
+      "id": "pcpress-internet-cd-1996",
+      "origin_family": "pcpress-internet-cd",
+      "priority": 30,
+      "citations": [
+        "https://archive95.net/sources/pcpress",
+        "https://archive.org/download/pc-press-internet-cd"
+      ],
+      "date_claims": [
+        {
+          "value": "1996-03-10/1996-03-28",
+          "meaning": "capture interval claimed by restoration finding aid",
+          "source": "https://archive95.net/sources/pcpress"
+        },
+        {
+          "value": "1996-05",
+          "meaning": "publication month claimed by restoration finding aid",
+          "source": "https://archive95.net/sources/pcpress"
+        },
+        {
+          "value": "1996-03-27",
+          "meaning": "item publicationdate; not page capture time",
+          "source": "https://archive.org/details/pc-press-internet-cd"
+        }
+      ],
+      "page_scopes": [
+        {
+          "host": "archive95.net",
+          "paths": [
+            "/sources/pcpress"
+          ],
+          "seeds": [
+            "https://archive95.net/sources/pcpress"
+          ]
+        }
+      ],
+      "catalog_tasks": [
+        {
+          "provider": "ia",
+          "action": "detail",
+          "key": "pc-press-internet-cd",
+          "observed_on": "https://archive95.net/sources/pcpress"
+        }
+      ],
+      "artifacts": [
+        {
+          "url": "https://archive.org/download/pc-press-internet-cd/PC_PRESS.ISO",
+          "observed_on": "https://archive.org/download/pc-press-internet-cd",
+          "version": "PC Press Internet CD 1996",
+          "operator": "pcpress-url-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 522053632,
+          "declared_sha1": "6b1917218cf02927b1a13358dff9a32996f07fcf",
+          "declared_md5": "b9c157388da3c5ac597b64a797afd1b3",
+          "identity_observation": "IA metadata file descriptor retrieved 2026-11-28; checksums are provider declarations until local bytes are verified"
+        }
+      ],
+      "manifest_url": "https://archive.org/download/pc-press-internet-cd/pc-press-internet-cd_files.xml",
+      "next_step": "Match local container identity; list original per-site URL mapping text files; bind local HTML to exact original URL. Quarantine damaged or absent mappings; dates require edition/source review."
+    },
+    {
+      "id": "packard-bell-netonacd-1998",
+      "origin_family": "packard-bell-netonacd",
+      "priority": 25,
+      "citations": [
+        "https://archive95.net/sources/netonacd",
+        "https://archive.org/download/internet-on-a-cd"
+      ],
+      "date_claims": [
+        {
+          "value": "1998-06-29/1998-10-13",
+          "meaning": "capture interval claimed by restoration finding aid",
+          "source": "https://archive95.net/sources/netonacd"
+        },
+        {
+          "value": "1998-07-16",
+          "meaning": "item publicationdate conflicts with end of claimed capture interval; preserve separately",
+          "source": "https://archive.org/details/internet-on-a-cd"
+        }
+      ],
+      "page_scopes": [
+        {
+          "host": "archive95.net",
+          "paths": [
+            "/sources/netonacd"
+          ],
+          "seeds": [
+            "https://archive95.net/sources/netonacd"
+          ]
+        }
+      ],
+      "catalog_tasks": [
+        {
+          "provider": "ia",
+          "action": "detail",
+          "key": "internet-on-a-cd",
+          "observed_on": "https://archive95.net/sources/netonacd"
+        }
+      ],
+      "artifacts": [
+        {
+          "url": "https://archive.org/download/internet-on-a-cd/internet%20on%20a%20cd.cdr",
+          "observed_on": "https://archive.org/download/internet-on-a-cd",
+          "version": "Internet on a CD 1998",
+          "operator": "teleport-original-url-v1",
+          "coverage_scope": "whole-edition",
+          "size": 579969024,
+          "declared_sha1": "2b50d7e7374568614272c42f423b8f58a4c30cff",
+          "declared_md5": "79f15a80f575ad7a09a3379bc23b4b59",
+          "identity_observation": "IA metadata file descriptor retrieved 2026-11-28; checksums are provider declarations until local bytes are verified"
+        }
+      ],
+      "manifest_url": "https://archive.org/download/internet-on-a-cd/internet-on-a-cd_files.xml",
+      "next_step": "Match local container identity; inspect Teleport original URL attributes and restored file map. Separate captured HTML from downloader error placeholders and uncollected outbound links."
+    },
+    {
+      "id": "iucr-nexus-target-editions",
+      "origin_family": "iucr-nexus",
+      "priority": 30,
+      "citations": [
+        "https://www.iucr.org/__data/iucr/nexus/",
+        "https://journals.iucr.org/a/issues/2002/01/00/es0304/"
+      ],
+      "date_claims": [
+        {
+          "value": "1997-01, 2000-07, 2000-10, 2001-10",
+          "meaning": "edition names from publisher filenames; inspect original release notes for capture/date semantics",
+          "source": "https://www.iucr.org/__data/iucr/nexus/"
+        },
+        {
+          "value": "2011-03-25",
+          "meaning": "directory modification date; never historical capture date",
+          "source": "https://www.iucr.org/__data/iucr/nexus/"
+        }
+      ],
+      "page_scopes": [
+        {
+          "host": "www.iucr.org",
+          "paths": [
+            "/__data/iucr/nexus"
+          ],
+          "seeds": [
+            "https://www.iucr.org/__data/iucr/nexus/"
+          ]
+        }
+      ],
+      "catalog_tasks": [],
+      "artifacts": [
+        {
+          "url": "https://www.iucr.org/__data/iucr/nexus/nexus_jan1997.iso",
+          "observed_on": "https://www.iucr.org/__data/iucr/nexus/",
+          "version": "1997-01",
+          "operator": "nexus-original-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 681013248
+        },
+        {
+          "url": "https://www.iucr.org/__data/iucr/nexus/nexus_jul2000.iso",
+          "observed_on": "https://www.iucr.org/__data/iucr/nexus/",
+          "version": "2000-07",
+          "operator": "nexus-original-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 670203904
+        },
+        {
+          "url": "https://www.iucr.org/__data/iucr/nexus/nexus_oct2000.iso",
+          "observed_on": "https://www.iucr.org/__data/iucr/nexus/",
+          "version": "2000-10",
+          "operator": "nexus-original-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 682444800
+        },
+        {
+          "url": "https://www.iucr.org/__data/iucr/nexus/nexus_oct2001.iso",
+          "observed_on": "https://www.iucr.org/__data/iucr/nexus/",
+          "version": "2001-10",
+          "operator": "nexus-original-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 650680320
+        }
+      ],
+      "next_step": "Match local ISO identity; list release notes and website indexes; determine original URL mapping before extracting hostnames or assigning a year. Process only these four target editions."
+    },
+    {
+      "id": "wod-burgundy-3-1999",
+      "origin_family": "world-online-digest",
+      "priority": 35,
+      "citations": [
+        "https://discmaster.textfiles.com/browse/39581",
+        "https://archive.org/download/wold_burgundy_30"
+      ],
+      "date_claims": [
+        {
+          "value": "1999-04-20",
+          "meaning": "member file date displayed for INSTALL.WLD; not a capture or release date",
+          "source": "https://discmaster.textfiles.com/view/39581/World%20Online%20Digest%20-%20Burgundy%20Volume%203.0%20%28USA%29/World%20Online%20Digest%20-%20Burgundy%20Volume%203.0%20%28USA%29.bin/INSTALL.WLD"
+        }
+      ],
+      "page_scopes": [
+        {
+          "host": "discmaster.textfiles.com",
+          "paths": [
+            "/browse/39581"
+          ],
+          "seeds": [
+            "https://discmaster.textfiles.com/browse/39581"
+          ]
+        }
+      ],
+      "catalog_tasks": [
+        {
+          "provider": "ia",
+          "action": "detail",
+          "key": "wold_burgundy_30",
+          "observed_on": "https://discmaster.textfiles.com/browse/39581"
+        }
+      ],
+      "artifacts": [
+        {
+          "url": "https://archive.org/download/wold_burgundy_30/World%20Online%20Digest%20-%20Burgundy%20Volume%203.0%20%28USA%29.zip",
+          "observed_on": "https://archive.org/download/wold_burgundy_30",
+          "version": "Burgundy Volume 3.0",
+          "operator": "wod-category-map-v1",
+          "coverage_scope": "whole-edition",
+          "size": 473214967,
+          "declared_sha1": "1a882a2d2e27615462c774377b5fb67d6a629566",
+          "declared_md5": "d6e255fdbe7f3d8ecce4752bc6021c62",
+          "identity_observation": "IA metadata file descriptor retrieved 2026-11-28; checksums are provider declarations until local bytes are verified"
+        }
+      ],
+      "manifest_url": "https://archive.org/download/wold_burgundy_30/wold_burgundy_30_files.xml",
+      "observed_members": [
+        "INSTALL.WLD",
+        "WOLD/HOME.HTM",
+        "WOLD/LINKS.HTM",
+        "WOLD/ARTS/Arts.htm",
+        "WOLD/ARTS/PRESSER/INDEX.HTM"
+      ],
+      "next_step": "Match local container identity; join LINKS.HTM original URLs to category-page local copies using title and category; inspect local body. Do not use DiscMaster rewritten presentation href as the original URL."
+    }
+  ],
+  "completed_operations": [],
+  "existing_coverage_audits": [
+    "audit/archive_results_20261127_dmoz_full.json",
+    "docs/ARCHIVE_ENGINEERING_2026-11-27.md"
+  ],
+  "coverage_note": "Do not restart exhausted WebBase or already consumed DMOZ bytes. June 2001 damaged tail and other explicitly documented gaps remain distinct. Only an exact byte hash, operation and coverage-scope receipt may close a new operation; absent private inventory is unknown, not empty."
+}

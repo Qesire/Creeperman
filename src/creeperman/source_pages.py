@@ -86,13 +86,18 @@ def make_fetcher(agent):
 class PageFrontier:
     def __init__(self,f):
         self.f=f;self.db=f.db;self.db.executescript(DDL)
-    def enqueue(self,u,sid,depth,priority,parent):
+    def enqueue(self,u,sid,depth,priority,parent,context=""):
         u=page_url(u)
         if u is None:raise ValueError("invalid page URL")
         self.db.execute("""INSERT INTO page_tasks(url,scope,depth,priority) VALUES(?,?,?,?)
            ON CONFLICT(url) DO UPDATE SET depth=min(depth,excluded.depth),priority=max(priority,excluded.priority)""",
            (u,sid,depth,priority))
         self.db.execute("INSERT OR IGNORE INTO page_edges VALUES(?,?,?)",(parent,u,"observed_page_link"))
+        from .discovery_policy import year_hint
+        scope=json.loads(self.db.execute("SELECT body FROM page_scopes WHERE id=?",(sid,)).fetchone()[0])
+        state=self.db.execute("SELECT state FROM page_tasks WHERE url=?",(u,)).fetchone()[0]
+        self.f.policy.register("page:"+u,kind="page",family=scope["family"],url=u,context=context,
+            year=year_hint(u+" "+context),parent=parent,state=state)
     def init(self,cfg):
         if cfg.get("schema")!=SCHEMA:raise ValueError("invalid scope configuration")
         with self.db:
@@ -125,14 +130,17 @@ class PageFrontier:
     def expand_page(self, row, scope, document_id, max_children):
         # The importer already resolved relative URLs against this document's
         # own source URL and HTML base. Keep the original observation intact.
-        proposals = {}
-        links = self.db.execute("""SELECT json_extract(body,'$.url'),json_extract(body,'$.description')
+        proposals = {}; contexts = {}
+        links = self.db.execute("""SELECT json_extract(body,'$.url'),json_extract(body,'$.description'),
+            json_extract(body,'$.surrounding_context')
             FROM observations WHERE parent=?""", (document_id,))
-        for link, context in links:
+        for link, context, surrounding in links:
             child = page_url(link)
             if child and child != row["url"] and in_scope(child, scope) and not FILE_RE.search(child):
+                context = context or ""
                 score = cue_score(context + " " + child)
                 proposals[child] = max(score, proposals.get(child, -1))
+                contexts[child] = (contexts.get(child, "") + " " + context + " " + (surrounding or ""))[:4000]
         self.db.executemany("INSERT OR IGNORE INTO page_edges VALUES(?,?,'unreviewed_page_link')",
                             ((document_id, child) for child in proposals))
         known = {r[0] for r in self.db.execute("""SELECT e.child FROM page_edges e
@@ -144,27 +152,35 @@ class PageFrontier:
                 if admitted >= max_children:
                     continue
                 admitted += 1
-            self.enqueue(child, row["scope"], row["depth"] + 1, score, document_id)
+            self.enqueue(child, row["scope"], row["depth"] + 1, score, document_id,contexts[child])
 
     def reuse_queued(self, limit, max_depth, max_children):
         reused = 0
         while reused < limit:
-            row = self.db.execute("""SELECT t.*,s.body,r.document_id AS local_id
+            candidates = self.db.execute("""SELECT t.*,s.body,r.document_id AS local_id
                 FROM page_tasks t JOIN reusable_pages r ON r.url=t.url
                 JOIN page_scopes s ON s.id=t.scope
                 WHERE t.state='queued' AND t.depth<=?
-                ORDER BY t.priority DESC,t.depth,t.url LIMIT 1""", (max_depth,)).fetchone()
+                ORDER BY t.priority DESC,t.depth,t.url""", (max_depth,))
+            # Offline reuse remains first, while the optional policy ranks the
+            # observed local queue itself. It never schedules a new download.
+            with self.db:
+                row = self.f.policy.select("page",candidates.fetchall()) if self.f.policy.enabled else candidates.fetchone()
             if row is None:
                 break
             scope = json.loads(row["body"])
             if not in_scope(row["url"], scope):
                 raise ValueError("persisted task outside scope")
             with self.db:
+                self.f.policy.register("document:"+row["local_id"],kind="document",family=scope["family"],
+                    url=row["url"],operator="source-document-v1",parent="page:"+row["url"],
+                    features={"local_available":True},state="parsed")
                 self.expand_page(row, scope, row["local_id"], max_children)
                 self.db.execute("INSERT OR IGNORE INTO page_edges VALUES(?,?,'reused_local_snapshot')",
                                 (row["url"], row["local_id"]))
                 self.db.execute("""UPDATE page_tasks SET state='reused_local',document_id=?
                     WHERE url=?""", (row["local_id"], row["url"]))
+                self.f.policy.state("page:"+row["url"],"reused_local")
             reused += 1
         return reused
 
@@ -185,7 +201,9 @@ class PageFrontier:
         with self.db:
             rid=self.db.execute("INSERT INTO page_requests(url,host,scope,kind,started,status) VALUES(?,?,?,?,?,'started')",
                 (u,h,sid,kind,utc())).lastrowid
-            if kind=="page":self.db.execute("UPDATE page_tasks SET state='started' WHERE url=?",(u,))
+            if kind=="page":
+                self.db.execute("UPDATE page_tasks SET state='started' WHERE url=?",(u,))
+                self.f.policy.state("page:"+u,"started")
         code=None;headers={};body=b"";err=None
         try:
             code,headers,body=fetch(u)
@@ -222,11 +240,15 @@ class PageFrontier:
               WHERE t.state='queued' AND t.depth<=?
               AND NOT EXISTS (SELECT 1 FROM reusable_pages r WHERE r.url=t.url)
               ORDER BY spent,priority DESC,depth,url""",(max_depth,))
-            row=None
+            eligible=[]
             for r in candidates:
                 h=urlsplit(r["url"]).hostname
                 cool=self.db.execute("SELECT until_epoch FROM page_cooldown WHERE host=?",(h,)).fetchone()
-                if h not in excluded and (not cool or cool[0]<=time.time()):row=r;break
+                if h not in excluded and (not cool or cool[0]<=time.time()):
+                    eligible.append(r)
+                    if not self.f.policy.enabled:break
+            with self.db:
+                row=self.f.policy.select("page",eligible)
             if row is None:break
             u=row["url"];sid=row["scope"];s=json.loads(row["body"]);h=urlsplit(u).hostname
             if not in_scope(u,s):raise ValueError("persisted task outside scope")
@@ -243,7 +265,9 @@ class PageFrontier:
                 raw=self.db.execute("SELECT bytes FROM bodies WHERE sha=?",(robots["sha"],)).fetchone()[0]
             rp=Protego.parse(raw.decode("utf-8",errors="replace"))
             if not rp.can_fetch(u,user_agent):
-                with self.db:self.db.execute("UPDATE page_tasks SET state='robots_disallowed' WHERE url=?",(u,))
+                with self.db:
+                    self.db.execute("UPDATE page_tasks SET state='robots_disallowed' WHERE url=?",(u,))
+                    self.f.policy.state("page:"+u,"robots_disallowed")
                 continue
             rate=rp.request_rate(user_agent)
             delay=max(interval,rp.crawl_delay(user_agent) or 0)
@@ -268,20 +292,22 @@ class PageFrontier:
                         except (ValueError,KeyError,TypeError,UnicodeError,AttributeError):
                             self.db.execute("ROLLBACK TO page_parse");self.db.execute("RELEASE page_parse");doc=None;state="invalid_document"
                 self.db.execute("UPDATE page_tasks SET state=?,document_id=? WHERE url=?",(state,doc,u))
+                self.f.policy.state("page:"+u,state)
         return {"attempted_this_run":used,"reused_local_this_run":reused,"excluded_hosts_this_run":sorted(excluded),**self.summary()}
     def summary(self):
         return {"schema":SCHEMA,"page_states":dict(self.db.execute("SELECT state,count(*) FROM page_tasks GROUP BY state")),
           "request_kinds":dict(self.db.execute("SELECT kind,count(*) FROM page_requests GROUP BY kind")),
           "requests_by_host":dict(self.db.execute("SELECT host,count(*) FROM page_requests GROUP BY host")),
           "provider_cooldowns":dict(self.db.execute("SELECT host,until_epoch FROM page_cooldown")),
-          "verified_new_eed":None}
+          "verified_new_eed":None,"discovery_policy":self.f.policy.summary()}
     def export(self,out):
         out=Path(out);out.mkdir(parents=True,exist_ok=False)
-        for table in ("page_scopes","page_tasks","page_edges","page_requests","robots_cache"):
+        for table in ("page_scopes","page_tasks","page_edges","page_requests","robots_cache",
+                      "discovery_nodes","discovery_edges","discovery_choices","discovery_batches","discovery_training"):
             with (out/(table+".jsonl")).open("wb") as fp:
                 for row in self.db.execute("SELECT * FROM "+table):
                     v=dict(row)
-                    for k in ("body","headers"):
+                    for k in ("body","headers","features","tokens"):
                         if isinstance(v.get(k),str):v[k]=json.loads(v[k])
                     fp.write(canonical(v))
         (out/"report.json").write_bytes(canonical(self.summary()))
@@ -296,12 +322,13 @@ def main(argv=None):
     r.add_argument("--user-agent",required=True);r.add_argument("--allow-public-pages",required=True,action="store_true")
     local=sub.add_parser("reuse-local",help="expand already imported HTML pages offline")
     for parser in (local, r):
+        parser.add_argument("--policy",type=Path,help="Load a live ranking policy; local reuse stays ahead of network")
         parser.add_argument("--max-local-pages",type=int,default=200)
         parser.add_argument("--max-depth",type=int,default=2)
         parser.add_argument("--max-children",type=int,default=15)
     e=sub.add_parser("export");e.add_argument("--out",required=True,type=Path)
     sub.add_parser("status")
-    a=p.parse_args(argv);f=Frontier(a.db)
+    a=p.parse_args(argv);f=Frontier(a.db,policy=getattr(a,"policy",None))
     try:
         with collector_lock(a.db):
             pf=PageFrontier(f)

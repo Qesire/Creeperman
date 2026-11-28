@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-28",
+  "scope": "Live source discovery only; no historical target hostname query or website-year adjudication.",
+  "policy_schema": "creeperman-live-policy-v1",
+  "policy_file_sha256": "d14a3e92d2957d6a3059e188a33973d2c389a085fc5d3a0fd0306384ec81d1a5",
+  "policy_status": "unvalidated_bootstrap_prior",
+  "seed_families": 4,
+  "target_edition_objects": 7,
+  "catalog_http_attempts": 3,
+  "catalog_parsed": 3,
+  "catalog_attempts": [
+    {
+      "status": "parsed",
+      "http_status": 200,
+      "sha": "080598f433128ed9d6a0d3be62c3e293cfa410e9624513a5ddf8a95be8a1625b",
+      "started": "2026-11-28T03:00:08.114118+00:00",
+      "ended": "2026-11-28T03:00:15.336200+00:00",
+      "error": null,
+      "provider": "ia",
+      "key": "wold_burgundy_30"
+    },
+    {
+      "status": "parsed",
+      "http_status": 200,
+      "sha": "fe4ef53126c688d2c7dfffb3a223462bdb9a7d90d93d047f372aff27a2f0583a",
+      "started": "2026-11-28T03:00:19.343276+00:00",
+      "ended": "2026-11-28T03:00:24.704831+00:00",
+      "error": null,
+      "provider": "ia",
+      "key": "pc-press-internet-cd"
+    },
+    {
+      "status": "parsed",
+      "http_status": 200,
+      "sha": "fccafcf03191826292cc3ab4f42ef12cf98349be85f0a67134837244c25857ba",
+      "started": "2026-11-28T03:00:28.720077+00:00",
+      "ended": "2026-11-28T03:00:33.294343+00:00",
+      "error": null,
+      "provider": "ia",
+      "key": "internet-on-a-cd"
+    }
+  ],
+  "original_file_descriptors": [
+    {
+      "file_name": "World Online Digest - Burgundy Volume 3.0 (USA).zip",
+      "url": "https://archive.org/download/wold_burgundy_30/World%20Online%20Digest%20-%20Burgundy%20Volume%203.0%20%28USA%29.zip",
+      "size": "473214967",
+      "declared_sha1": "1a882a2d2e27615462c774377b5fb67d6a629566",
+      "declared_md5": "d6e255fdbe7f3d8ecce4752bc6021c62",
+      "file_role": "original"
+    },
+    {
+      "file_name": "PC_PRESS.ISO",
+      "url": "https://archive.org/download/pc-press-internet-cd/PC_PRESS.ISO",
+      "size": "522053632",
+      "declared_sha1": "6b1917218cf02927b1a13358dff9a32996f07fcf",
+      "declared_md5": "b9c157388da3c5ac597b64a797afd1b3",
+      "file_role": "original"
+    },
+    {
+      "file_name": "internet on a cd.cdr",
+      "url": "https://archive.org/download/internet-on-a-cd/internet%20on%20a%20cd.cdr",
+      "size": "579969024",
+      "declared_sha1": "2b50d7e7374568614272c42f423b8f58a4c30cff",
+      "declared_md5": "79f15a80f575ad7a09a3379bc23b4b59",
+      "file_role": "original"
+    }
+  ],
+  "page_transport_attempts": 3,
+  "page_requests_sent_successfully": 0,
+  "page_attempts": [
+    {
+      "url": "https://archive95.net/robots.txt",
+      "kind": "robots",
+      "status": "transport_error",
+      "http_status": null,
+      "error": "gaierror"
+    },
+    {
+      "url": "https://www.iucr.org/robots.txt",
+      "kind": "robots",
+      "status": "transport_error",
+      "http_status": null,
+      "error": "gaierror"
+    },
+    {
+      "url": "https://discmaster.textfiles.com/robots.txt",
+      "kind": "robots",
+      "status": "transport_error",
+      "http_status": null,
+      "error": "gaierror"
+    }
+  ],
+  "page_tasks_remaining": 4,
+  "policy_choices": {
+    "exploit": 5,
+    "explore": 1
+  },
+  "inventory_bound": false,
+  "historical_candidate_queries": 0,
+  "reviewed_batches": 0,
+  "new_host_years": 0,
+  "new_eed": "0",
+  "yield_estimate": null,
+  "boundary": "Metadata success is not corpus acquisition, complete evidence scope or a zero-EED outcome. Page robot retrieval failed at DNS; no page body was fetched. Provider-declared checksums await verification against local original bytes."
+}

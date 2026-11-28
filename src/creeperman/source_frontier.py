@@ -42,7 +42,7 @@ CUES = (
     "webverzeichnis","archivo web","directorio web","arquivo da web","diretório",
     "ウェブアーカイブ","ウェブ収集","ウェブサイト","网页归档","网站目录",
 )
-FILE_RE = re.compile(r"\.(?:cdxj?|warc|arc|rdf|xml|jsonl?|ndjson|csv|tsv|txt|zip|tar|tgz|7z|pdf|mbox|gz|bz2|xz)(?:$|[?#])", re.I)
+FILE_RE = re.compile(r"\.(?:cdxj?|warc|arc|rdf|xml|jsonl?|ndjson|csv|tsv|txt|zip|tar|tgz|7z|pdf|mbox|gz|bz2|xz|iso|cdr|bin)(?:$|[?#])", re.I)
 
 
 def digest(value):
@@ -313,6 +313,7 @@ class LinkParser(HTMLParser):
     def __init__(self, base):
         super().__init__(convert_charrefs=True)
         self.base=base;self.links=[];self.active=None;self.base_href=None
+        self.text_prefix="";self.contexts={}
     def handle_starttag(self,tag,attrs):
         d=dict(attrs)
         if tag=="base" and self.base_href is None and d.get("href"):
@@ -320,6 +321,7 @@ class LinkParser(HTMLParser):
         if tag=="a" and d.get("href"):
             self.active=[d["href"],"",self.getpos()]
             self.links.append(self.active)
+            self.contexts[self.getpos()]=self.text_prefix[-240:]
         if tag=="meta" and str(d.get("name") or d.get("property") or "").lower() in ("citation_pdf_url","citation_doi","dc.identifier","dcterms.identifier"):
             self.links.append([d.get("content",""),"metadata identifier",self.getpos()])
         if tag=="link" and d.get("href"):
@@ -328,6 +330,7 @@ class LinkParser(HTMLParser):
                 self.links.append([d["href"],rel,self.getpos()])
     def handle_data(self,data):
         if self.active:self.active[1]=(self.active[1]+data)[:400]
+        self.text_prefix=(self.text_prefix+" "+data)[-480:]
     def handle_endtag(self,tag):
         if tag=="a":self.active=None
 
@@ -356,7 +359,8 @@ def document_links(raw, fmt, source_url):
         if not raw_url or raw_url.startswith(("#","mailto:","javascript:")):continue
         d=normalize_doi(raw_url)
         u="https://doi.org/"+d if d else safe_url(urljoin(source_url,raw_url))
-        if u:yield {"url":u,"raw_url":raw_url,"context":anchor,"position":list(position)}
+        if u:yield {"url":u,"raw_url":raw_url,"context":anchor,"position":list(position),
+            "surrounding_context":parser.contexts.get(tuple(position),"") if fmt=="html" else ""}
 
 
 DDL="""
@@ -380,7 +384,7 @@ CREATE TABLE IF NOT EXISTS proposals(parent TEXT NOT NULL, child TEXT NOT NULL, 
 
 
 class Frontier:
-    def __init__(self, path):
+    def __init__(self, path, policy=None):
         path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
         self.db=sqlite3.connect(path,timeout=30)
         self.db.row_factory=sqlite3.Row
@@ -389,6 +393,8 @@ class Frontier:
         self.db.commit()
         if self.db.execute("SELECT value FROM settings WHERE key='schema'").fetchone()[0]!=SCHEMA:
             raise ValueError("incompatible source frontier")
+        from .discovery_policy import LivePolicy
+        self.policy=LivePolicy(self.db,policy)
     def close(self):self.db.close()
     def put_body(self,body):
         h=hashlib.sha256(body).hexdigest()
@@ -401,6 +407,11 @@ class Frontier:
           priority=max(priority,excluded.priority)""",
           (i,t["provider"],t["action"],canonical(t).decode(),family,depth,priority,time.time_ns()))
         self.db.execute("INSERT OR IGNORE INTO edges VALUES(?,?,?)",(parent,i,reason))
+        from .discovery_policy import year_hint
+        state=self.db.execute("SELECT state FROM tasks WHERE id=?",(i,)).fetchone()[0]
+        self.policy.register("catalog:"+i,kind="catalog",family=family,url=endpoint(t),
+            context=t["key"]+" "+reason,year=year_hint(t["key"]),operator="source-catalog-v1",
+            parent=parent,state=state)
         return i
     def init(self,cfg):
         if cfg.get("schema")!=SCHEMA:raise ValueError("bad seed schema")
@@ -419,6 +430,14 @@ class Frontier:
         self.db.execute("INSERT OR IGNORE INTO observations VALUES(?,?,?,?)",
                         (parent,rid,str(ordinal),canonical(body).decode()))
         self.db.execute("INSERT OR IGNORE INTO edges VALUES(?,?,?)",(parent,rid,record["kind"]))
+        if record["kind"] in ("file_descriptor","file_locator_hint"):
+            from .discovery_policy import year_hint
+            origin=self.policy.resolve(parent)
+            node=self.db.execute("SELECT family FROM discovery_nodes WHERE id=?",(origin,)).fetchone()
+            self.policy.register("artifact:"+rid,kind="artifact",family=node[0] if node else p,
+                url=record.get("url", ""),context=(record.get("description") or "")+" "+str(record.get("name",""))+" "+(record.get("surrounding_context") or ""),
+                year=year_hint(canonical(record).decode()),operator="source-file-review-v1",
+                parent=parent,state="unreviewed")
     def import_document(self, path, fmt, source_url, family):
         if not safe_url(source_url):raise ValueError("explicit public original document URL required")
         path=Path(path)
@@ -429,6 +448,10 @@ class Frontier:
         if len(raw)>MAX_BYTES:raise ValueError("document exceeds metadata cap; split locally")
         # Caller may be within the scoped page crawl's transaction.
         h=self.put_body(raw); doc=digest([h,source_url,fmt])
+        from .discovery_policy import year_hint
+        self.policy.register("document:"+doc,kind="document",family=family,url=source_url,
+            year=year_hint(source_url),operator="source-document-v1",parent="page:"+source_url,
+            features={"local_available":True},state="parsed")
         if fmt == "file-descriptors":
             already_imported = self.db.execute("SELECT 1 FROM documents WHERE id=?", (doc,)).fetchone()
             if not already_imported:
@@ -447,10 +470,11 @@ class Frontier:
         self.db.execute("INSERT OR IGNORE INTO documents VALUES(?,?,?,?)",(doc,h,source_url,fmt))
         for i,l in enumerate(document_links(raw,fmt,source_url)):
             r=resource("file_locator_hint" if FILE_RE.search(l["url"]) else "locator_hint",
-                l["url"],url=l["url"],description=l["context"],**{"raw_url":l["raw_url"],"position":l["position"]})
+                l["url"],url=l["url"],description=l["context"],anchor_text=l["context"],
+                surrounding_context=l["surrounding_context"],**{"raw_url":l["raw_url"],"position":l["position"]})
             self.observe(doc,"local_document",r,i)
             for t in route_url(l["url"]):
-                self.enqueue(t,family,0,20+r["rank"],doc,"document link at "+str(l["position"]))
+                self.enqueue(t,family,0,20+r["rank"],doc,"document link at "+str(l["position"])+" "+l["context"]+" "+l["surrounding_context"])
         return doc
     def propose(self,parent,t,family,depth,priority,reason):
         cid=digest(t)
@@ -474,9 +498,10 @@ class Frontier:
           LEFT JOIN cooldown c ON c.provider=t.provider
           WHERE t.state='queued' AND t.depth<=? AND t.provider IN ({placeholders})
           AND coalesce(c.until_epoch,0)<=?
-          ORDER BY spent ASC, priority DESC, depth ASC, created ASC, id ASC LIMIT 1""",
-          (max_depth,*ps,time.time())).fetchone()
-        return rows
+          ORDER BY spent ASC, priority DESC, depth ASC, created ASC, id ASC""",
+          (max_depth,*ps,time.time()))
+        if not self.policy.enabled:return rows.fetchone()
+        return self.policy.select("catalog",rows.fetchall())
     def run(self, *, providers, limit, interval, max_depth=3, max_pages=2, max_children=6, fetch, sleeper=time.sleep):
         if not providers or any(p not in PROVIDERS for p in providers):raise ValueError("invalid providers")
         if type(limit)is not int or not 1<=limit<=200 or not 3<=interval<=3600 or not 0<=max_depth<=8 or not 1<=max_pages<=5 or not 1<=max_children<=30:
@@ -491,6 +516,7 @@ class Frontier:
                 t=json.loads(row["spec"]);tid=row["id"];p=t["provider"];url=endpoint(t)
                 changed=self.db.execute("UPDATE tasks SET state='started' WHERE id=? AND state='queued'",(tid,)).rowcount
                 if not changed:continue
+                self.policy.state("catalog:"+tid,"started")
                 last=self.db.execute("SELECT max(started) FROM attempts WHERE provider=?",(p,)).fetchone()[0]
                 self.db.execute("INSERT INTO attempts(task_id,started,status,url,family,provider) VALUES(?,?,?,?,?,?)",
                     (tid,utc(),"started",url,row["family"],p))
@@ -550,6 +576,7 @@ class Frontier:
                 self.db.execute("UPDATE attempts SET ended=?,status=?,http_status=?,sha=?,headers=?,error=? WHERE task_id=?",
                     (utc(),status,code,h,canonical(headers).decode(),err,tid))
                 self.db.execute("UPDATE tasks SET state=? WHERE id=?",(status,tid))
+                self.policy.state("catalog:"+tid,status)
             if used<limit:sleeper(interval)
         return {"attempted_this_run":used,"blocked_this_run":sorted(blocked),**self.summary()}
     def summary(self):
@@ -560,7 +587,7 @@ class Frontier:
                 "resource_kinds":counts("SELECT json_extract(body,'$.kind'),count(*) FROM resources GROUP BY 1"),
                 "unadmitted_proposals":self.db.execute("SELECT count(DISTINCT p.child) FROM proposals p LEFT JOIN tasks t ON t.id=p.child WHERE t.id IS NULL").fetchone()[0],
                 "provider_cooldowns":counts("SELECT provider,until_epoch FROM cooldown"),
-                "verified_new_eed":None}
+                "verified_new_eed":None,"discovery_policy":self.policy.summary()}
     def export(self,out):
         with new_output(out) as stage:
             self._export(stage)
@@ -574,11 +601,13 @@ class Frontier:
           "file_review.jsonl":"SELECT body FROM resources WHERE json_extract(body,'$.kind') IN ('file_descriptor','file_locator_hint') ORDER BY rank DESC,id",
           "documents.jsonl":"SELECT * FROM documents ORDER BY id",
           "proposals.jsonl":"SELECT p.*,CASE WHEN t.id IS NULL THEN 0 ELSE 1 END AS admitted FROM proposals p LEFT JOIN tasks t ON t.id=p.child ORDER BY p.priority DESC,p.parent,p.child"}
+        for table in ("discovery_nodes","discovery_edges","discovery_choices","discovery_batches","discovery_training"):
+            queries[table+".jsonl"]="SELECT * FROM "+table
         for name,q in queries.items():
             with (out/name).open("wb") as f:
                 for r in self.db.execute(q):
                     d=dict(r)
-                    for k in ("spec","body","headers"):
+                    for k in ("spec","body","headers","features","tokens"):
                         if isinstance(d.get(k),str):d[k]=json.loads(d[k])
                     if name in ("resources.jsonl","file_review.jsonl"):d=d["body"]
                     f.write(canonical(d))
@@ -621,6 +650,7 @@ def main(argv=None):
     run.add_argument("--max-requests",type=int,required=True);run.add_argument("--interval",type=float,default=4)
     run.add_argument("--max-depth",type=int,default=3);run.add_argument("--max-pages",type=int,default=2);run.add_argument("--max-children",type=int,default=6)
     run.add_argument("--user-agent",required=True);run.add_argument("--allow-public-catalog",action="store_true",required=True)
+    run.add_argument("--policy",type=Path,help="Load a reviewed live ranking policy; persisted for subsequent runs")
     ex=sub.add_parser("export");ex.add_argument("--out",type=Path,required=True)
     bind=sub.add_parser("bind-local",help="Bind the local file census and successful download receipts")
     bind.add_argument("--inventory",type=Path,required=True);bind.add_argument("--root",type=Path,required=True)
@@ -631,7 +661,7 @@ def main(argv=None):
     admit=sub.add_parser("admit");admit.add_argument("--proposal-id",required=True)
     sub.add_parser("status")
     a=p.parse_args(argv)
-    f=Frontier(a.db)
+    f=Frontier(a.db,policy=getattr(a,"policy",None))
     try:
         if a.cmd=="init":
             with collector_lock(a.db):

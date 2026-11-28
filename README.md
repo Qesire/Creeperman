@@ -4,9 +4,20 @@
 
 本项目面向 Internet Digital Ark：持续发现历史主机名，为每一个入选的 hostname-year 保留确切的网站证据，形成可供后续历史网页采集使用的年度清单，并用来源收益与失败记录改进下一轮发现策略。
 
+## 2026-11-28：真实前沿与 RSIforme 已接合
+
+现有目录与页面执行器已经读取 RSIforme 导出的策略，保存 URL/锚文本/上下文及真实发现路径；完整裁决后按累计 A 和 exact hostname-year 唯一去重，反馈路径收益并重排下一批任务。具体起点已落为 **4 个资料家族、7 个版次原件**，库存未知保持待核对。
+
+本轮真实取得 PC Press、Packard Bell、World Online Digest 三个条目的元数据及容器身份；3 次请求均 HTTP 200。窄范围页面爬取在 3 个站点的 robots 获取前因 DNS 解析失败停止，4 个页面仍待处理。没有历史候选查询或新增年度裁决；策略是明确未验证的启动先验，尚未证明稳定正产率。
+
+- [实现、真实运行与继续执行命令](docs/LIVE_DISCOVERY_2026-11-28.md)
+- [国际项目如何选种子，以及本任务的原件入口](docs/DISCOVERY_SEEDS_2026-11-28.md)
+- [两仓方法与奖励定义](docs/CREEPERMAN_RSIFORME_DISCOVERY_LOOP.md)
+- [种子配置](config/discovery_bootstrap.json) · [启动策略](config/discovery_policy_bootstrap.json) · [真实执行汇总](audit/discovery_live_20261128.json)
+
 ## v0.2 实现与移交
 
-**2026-11-27 本地裁决累计 155 个主机年度，100.9875 EED。** 上午批次：LAW WebBase 2001 完整 URL 节点表新增 0 EED，DMOZ 两个主目录前缀和两个完整分类版新增 11 项。下午批次取得出版方存档的 2001 年三个完整主目录版本和 2000-12-13 完整 Kids & Teens 版，新增 100 项、63.2063 EED。[完整版取得与结算](docs/DMOZ_ARCHIVE_EDITIONS_2026-11-27.md) · [上午批次实测](docs/ARCHIVE_ENGINEERING_2026-11-27.md)
+**2026-11-27 本地裁决累计 155 个主机年度，100.9875 EED。** 上午批次：LAW WebBase 2001 完整 URL 节点表新增 0 EED，DMOZ 两个主目录前缀和两个完整分类版新增 11 项。下午批次取得出版方存档的 2001 年一月、十月主目录及六月损坏版的可恢复前缀，以及 2000-12-13 完整 Kids & Teens 版，新增 100 项、63.2063 EED。[完整版取得与结算](docs/DMOZ_ARCHIVE_EDITIONS_2026-11-27.md) · [上午批次实测](docs/ARCHIVE_ENGINEERING_2026-11-27.md)
 
 **下一位执行 Agent 首先阅读 [AGENTS.md](AGENTS.md) 和 [本地运行交接手册](docs/HANDOFF_LOCAL_AGENT.md)。** 已完成原始资料适配、联合差集、双馆在线查询/回放、全文反搜、来源追溯、Temporal 批次执行、结果导入和经裁决年度结算。
 
